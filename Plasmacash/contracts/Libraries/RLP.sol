@@ -1,10 +1,27 @@
-pragma solidity ^0.4.18;
+/** This file is part of the Plasmacash library.
+*
+* The plasmacash library is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* The Plasmacash library is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with the plasmacash library. If not, see <http://www.gnu.org/licenses/>.
+*/
+
 
 /**
  * @title RLPReader
  * @author Andreas Olofsson (androlo1980@gmail.com)
  * @dev RLPReader is used to read and parse RLP encoded data in memory.
  */
+
+pragma solidity ^0.4.18;
 
  library RLP {
      uint constant DATA_SHORT_START = 0x80;

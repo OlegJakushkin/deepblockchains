@@ -1,14 +1,31 @@
-pragma solidity ^0.4.24;
-// abigen --abi plasmacash.abi --pkg plasmachain --type PlasmaCash --out plasmacash.go
-
-import './TxHash.sol';
-import "./PriorityQueue.sol";
-import "./SparseMerkle.sol";
+/** Copyright 2018 Wolk Inc.
+* This file is part of the Plasmacash library.
+*
+* The plasmacash library is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* The Plasmacash library is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with the plasmacash library. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 /**
  * @title  PlasmaCash-MVP by Wolk
  * @author Michael Chung (michael@wolk.com)
  */
+
+ // abigen --abi plasmacash.abi --pkg plasmachain --type PlasmaCash --out plasmacash.go
+pragma solidity ^0.4.24;
+
+import './TxHash.sol';
+import "./PriorityQueue.sol";
+import "./SparseMerkle.sol";
 
 contract PlasmaCash {
 
