@@ -1,0 +1,490 @@
+[
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "depositIndex",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "getNextExit",
+        "outputs": [
+            {
+                "name": "depID",
+                "type": "uint64"
+            },
+            {
+                "name": "tokenID",
+                "type": "uint64"
+            },
+            {
+                "name": "exitableTS",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "currentDepositIndex",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "_depositIndex",
+                "type": "uint64"
+            }
+        ],
+        "name": "depositExit",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "kill",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "tokenID",
+                "type": "uint64"
+            },
+            {
+                "name": "txBytes1",
+                "type": "bytes"
+            },
+            {
+                "name": "txBytes2",
+                "type": "bytes"
+            },
+            {
+                "name": "proof1",
+                "type": "bytes"
+            },
+            {
+                "name": "proof2",
+                "type": "bytes"
+            },
+            {
+                "name": "blk1",
+                "type": "uint64"
+            },
+            {
+                "name": "blk2",
+                "type": "uint64"
+            }
+        ],
+        "name": "startExit",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "childChain",
+        "outputs": [
+            {
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "tokenID",
+                "type": "uint64"
+            },
+            {
+                "name": "txBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "proof",
+                "type": "bytes"
+            },
+            {
+                "name": "blk",
+                "type": "uint64"
+            }
+        ],
+        "name": "challenge",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "currentBlkNum",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "authority",
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "finalizeExits",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "deposit",
+        "outputs": [],
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "exits",
+        "outputs": [
+            {
+                "name": "txblk1",
+                "type": "uint64"
+            },
+            {
+                "name": "txblk2",
+                "type": "uint64"
+            },
+            {
+                "name": "exitor",
+                "type": "address"
+            },
+            {
+                "name": "exitableTS",
+                "type": "uint256"
+            },
+            {
+                "name": "bond",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "_blkRoot",
+                "type": "bytes32"
+            },
+            {
+                "name": "_blknum",
+                "type": "uint64"
+            }
+        ],
+        "name": "submitBlock",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "depositBalance",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "fallback"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "_depositor",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "name": "_depositIndex",
+                "type": "uint64"
+            },
+            {
+                "indexed": false,
+                "name": "_denomination",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_tokenID",
+                "type": "uint64"
+            }
+        ],
+        "name": "Deposit",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "_exiter",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "name": "_depositIndex",
+                "type": "uint64"
+            },
+            {
+                "indexed": false,
+                "name": "_denomination",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_tokenID",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "StartExit",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "_rootHash",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "name": "_blknum",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_currentDepositIndex",
+                "type": "uint64"
+            }
+        ],
+        "name": "PublishedBlock",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "_exiter",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "name": "_depositIndex",
+                "type": "uint64"
+            },
+            {
+                "indexed": false,
+                "name": "_denomination",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_tokenID",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "FinalizedExit",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "_challenger",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "name": "_tokenID",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_timestamp",
+                "type": "uint256"
+            }
+        ],
+        "name": "Challenge",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "name": "_priority",
+                "type": "uint256"
+            }
+        ],
+        "name": "ExitStarted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "name": "_priority",
+                "type": "uint256"
+            }
+        ],
+        "name": "ExitCompleted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "depID",
+                "type": "uint64"
+            },
+            {
+                "indexed": false,
+                "name": "tokenID",
+                "type": "uint64"
+            },
+            {
+                "indexed": false,
+                "name": "exitableTS",
+                "type": "uint256"
+            }
+        ],
+        "name": "CurrtentExit",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "exitableTS",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "name": "cuurrentTS",
+                "type": "uint256"
+            }
+        ],
+        "name": "ExitTime",
+        "type": "event"
+    }
+]
