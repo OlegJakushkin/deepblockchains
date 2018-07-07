@@ -1,7 +1,7 @@
 
 # Plasma Cash Chain
 
-Plasama Cash rootchain contract implementation by @wolkdb.  For background, please read:
+Plasma Cash rootchain contract implementation by @wolkinc.  For background, please read:
 
 * [Plasma Cash with Sparse Merkle Trees, Bloom filters, and Probabilistic Transfers](https://ethresear.ch/t/plasma-cash-with-sparse-merkle-trees-bloom-filters-and-probabilistic-transfers/2006)
 

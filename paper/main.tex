@@ -2,8 +2,9 @@
 \usepackage{multicol}
 
 \title{Deep Blockchains}
-\author{Sourabh Niyogi\\Wolk Inc.\\{\tt sourabh@wolk.com}}
-\date{July 4, 2018}
+\author{Sourabh Niyogi, Michael Chung and Rodney Witcher\\Wolk Inc.\\
+{\tt \{sourabh,michael,rodney\}@wolk.com}}
+\date{July 7, 2018}
 
 \usepackage{url}
 \usepackage{amsfonts}
@@ -12,6 +13,7 @@
 \usepackage{amsmath}
 \usepackage[latin1]{inputenc}
 \usepackage{tikz}
+\usepackage{hyperref}
 \usepackage[nottoc]{tocbibind}
 \geometry{left=.75in,top=.75in,right=.75in,bottom=1.0in}
 
@@ -97,7 +99,7 @@ We describe how a {\em deep blockchain} architecture can address bottlenecks of 
 
 \section{Deep Blockchains}
 
-Layer 1 blockchains such as Ethereum and Bitcoin, on their own, cannot support the latency and throughput needs for modern decentralized web applications.  Attempting to support higher throughput or lower latency with naive solutions (e.g. larger blocks, lower security consensus algorithms, etc.) sacrifices the core benefits of layer 1 blockchains.   It is unnecessary to make this sacrifice in the name of scalability for blockchain databases:  when one blockchain is capable of storing and retrieving state, then another blockchain's summary state variables may be stored there.  This can be done in layers, where {\em Layer i+1} blockchain's state is stored in {\em Layer i} blockchains and each blockchain uses a well-motivated consensus engine to achieve Byzantine fault tolerance.
+Layer 1 blockchains such as Ethereum and Bitcoin, on their own, cannot support the latency and throughput needs for modern web applications.  Attempting to support higher throughput or lower latency with naive solutions (e.g. larger blocks, lower security consensus algorithms, etc.) sacrifices the core benefits of layer 1 blockchains.   It is unnecessary to make these sacrifices in the name of scalability for blockchains:  when one blockchain is capable of storing and retrieving state, then another blockchain's summary state variables may be stored there.  This can be done in layers, where {\em Layer i+1} blockchain's state is stored in {\em Layer i} blockchains and each blockchain uses a well-motivated consensus engine to achieve Byzantine fault tolerance.
 Using this layered approach, we can specify the key elements of a {\em deep blockchain} architecture.  The blockchain paradigm \cite{wood2015} that forms the backbone of all decentralized consensus-based transaction systems to date is as follows. A valid state transition for a blockchain of Layer $i$ is one which comes about through a transaction $\transaction{i}{j}$:
 
 \begin{equation}
@@ -122,7 +124,7 @@ Using this layered approach, we can specify the key elements of a {\em deep bloc
 
 In a {\bf deep blockchain} system, we will say that blockchain layer $i$ is said to be {\em connected} to layer $i+1$ if:
 \begin{enumerate}
-    \item there exists a transaction mapping function $\submission{i+1}$ mapping blocks at layer $i+1$ into transactions $\transaction{i}{k}$ at layer $i$ for all blocks $\block{i+1}{j}$
+    \item there exists a transaction mapping function $\submission{i+1}$ mapping blocks at layer $i+1$ into transactions $\transaction{i}{k}$ at layer $i$ for all layer $i+1$ blocks $\block{i+1}{j}$
 \begin{equation}
 \transaction{i}{k} \equiv \submission{i+1}(\block{i+1}{j})
 \end{equation}
@@ -156,7 +158,7 @@ A natural choice for transaction mapping $\submission{i+1}(\block{i+1}{j})$ may 
 \end{figure}
 
 Historically, the low-throughput high-latency of Layer 1 blockchains resulted in immediate pressure to drive activities off-chain, but
-only a few ``off-chain'' attempts can be considered a deep blockchain because they lack the connected blockchains.  Layer $i+1$ and layer $i$  may be explicitly connected in a deep blockchain system for many different reasons:
+only a few ``off-chain'' attempts can be considered deep blockchains because they lack the connected blockchains.  Layer $i+1$ and layer $i$  may be explicitly connected in a deep blockchain system for many different reasons:
 \begin{enumerate}
     \item Higher throughput services at layer $i+1$ may be paid for using the value held in layer $i$ currency
 
@@ -168,16 +170,15 @@ The nascent label ``Layer 2'' encompasses many newly developing notions ranging 
 
 \section{Layer 2: Plasma Cash Blockchain}
 
-Seminal insights on multi-layer blockchains were put forth by \cite{poonbuterin2017}, which have inspired many ``Plasma'' designs, and specifically motivated our implementation of what has been termed ``Plasma Cash'' for tracking bandwidth balances.
-The Layer 2 Plasma Cash blockchain is connected to Layer 1 using the following trust primitives:
+Seminal insights on multi-layer blockchains were put forth by \cite{poonbuterin2017}, which have inspired many ``Plasma'' designs, and specifically motivated our implementation of what has been termed ``Plasma Cash'' for tracking storage and  bandwidth balances.  The Layer 2 Plasma Cash blockchain is connected to Layer 1 using the following trust primitives:
 \begin{itemize}
 \item User Deposit: When Alice wishes to use the services enabled by the Layer 2 blockchain, Alice deposits some Layer 1 currency $\lambda_{dep}$ (.01 ETH or 1 WLK) in a Layer 1 contract function (\texttt{createBlockchain}); the deposit event results in Alice owning a Layer 2 token $\tau$ through a Layer 2 Deposit transaction included in a Layer 2 block.
 
 \item User Transfer: When Alice wishes to transfer her Layer 2 token $\tau$ to another user Bob or the Plasma operator Paul, Alice signs a Layer 2 token transfer transaction specifying the recipient and the previous block.  This Layer 2 transaction is included on the Layer 2 blockchain by Paul.
 
-\item Layer 2 Block Connection: The operators of the Layer 2 blockchain mints new Layer 2 blocks $\block{2}{j}$ with a collation of Layer 2 transactions $\transaction{2}{k}$ (with a consensus protocol such as Quorum RAFT, POA) from the User Deposit and User Transfer transactions.  Each Layer 2 block $\block{2}{k}$ has its Merkle Root $\blockhash{2}{k}$ submitted to Layer 1 with a transaction $\transaction{2}{k} = \submitblock{k}{\blockhash{2}{k}}$ recorded in a Layer 1 block $\block{1}{l}$.   The recipient of a token transfer must receive the full history of all transactions from Alice and verify it against these Merkle Roots $\blockhash{2}{k}$ stored in Layer 1, all the way to the original deposit.
+\item Layer 2 Block Connection: The operators of the Layer 2 blockchain mints new Layer 2 blocks $\block{2}{j}$ with a collation of Layer 2 transactions $\transaction{2}{k}$ (with a consensus protocol such as Quorum RAFT and POA in permissioned networks or Ethereum Casper for permissionless networks) from the User Deposit and User Transfer transactions.  Each Layer 2 block $\block{2}{k}$ has its Merkle Root $\blockhash{2}{k}$ submitted to Layer 1 with a transaction $\transaction{2}{k} = \submitblock{k}{\blockhash{2}{k}}$ recorded in a Layer 1 block $\block{1}{l}$.   The recipient Bob of a token transfer must receive the full history of all transactions from Alice and verify it against these Merkle Roots $\blockhash{2}{k}$ stored in Layer 1, all the way to the original deposit.  If any transaction in the history cannot be verified by Bob, Bob cannot accept Alice's token as payment.
 
-\item User Exit: When Alice wishes to withdraw her token $\tau$ for Layer 1 cryptocurrency, she calls $\startexit$ function with the last 2 transactions which can be verified against and Merkle proofs that must match the stored Merkle roots to be a valid exit; if no one challenges the exit, Alice receives the original $\lambda_{dep}$ within a short time period when exits are finalized.
+\item User Exit: When Alice wishes to withdraw her token $\tau$ for Layer 1 cryptocurrency, she calls $\startexit$ function with the last 2 transactions\footnote{As to why {\em two}, two is indicative, but not conclusive concerning Alice's ownership, therefore a user challenge process is required.} which can be verified against and Merkle proofs that must match the stored Merkle roots to be a valid exit; if no one challenges the exit, Alice receives the outstanding token balance within a short time period when exits are finalized.
 
 \item User Challenges:  If the operator Bob or another user Charlie notices that Alice's exit attempt is invalid, it submits a Merkle proof and rewarded when a valid challenge indicates a invalid exit.
 \end{itemize}
@@ -213,7 +214,7 @@ With the Layer 2 Block Connection and trust primitives in place, Layer 2 can ope
 
 The specific deep blockchain system that we have developed extends the Blockchain 2.0 Objective up one more layer by incorporating trust primitives (Block transactions, Sparse Merkle Trees) in provable NoSQL, SQL and Storage services, shown in Figure 2:  Layer 3 NoSQL, SQL and Storage blockchains rest on the storage and bandwidth services of Layer 2, which supervene on the decentralized computation and payment services of Layer 1.  Our work follows Ethereum SWARM's foundational work on storage and bandwidth \cite{swarm} which outlines the following ideas that we situate in multiple layers:
 \begin{itemize}
-    \item Chunks are stored in Cloudstore by the hash of their content.  Nodes that request a chunk by key $k$ can verify correctness of the value $v$ returned by checking the hash of $v$.
+    \item A chunk of bytes $v$ is stored in Cloudstore using 256-bit hash $k = \hash{v}$ as the key to retrieve $v$.  Nodes that request a chunk by key $k$ can verify correctness of the value $v$ returned from Cloudstore simply by checking if   $k=\hash{v}$.
     \item Insurers of chunks can earn Layer 1 currency with valid Merkle proofs; Failure to provide valid proofs result in severe insurance payouts
     \item Bandwidth consumed by a node, when hitting the nodes threshold must result in signed payments
 \end{itemize}
@@ -221,14 +222,14 @@ Layer 1 blockchains were initially developed without the concern for storage mod
 
 Putting the elements together in a deep blockchain system for provable storage:
 \begin{itemize}
-\item Layer 1 blockchain: When a developer wishes to have a Layer 3 blockchain for NoSQL/SQL/Storage, they send Layer 1 currency into \texttt{createBlockchain(blockchainName string)} on MainNet; this can be refunded with a {\tt dropBlockchain(blockchainName string)} operation [taking place of {\tt startExit}].  When storage is used in {\tt blockchainName} through the activities of Layer 3 blockchains (as recorded by the Layer 2 blockchain below), this balance goes down.
+\item Layer 1 blockchain: When a developer wishes to have a Layer 3 blockchain for NoSQL/SQL/Storage, they send Layer 1 currency into \texttt{createBlockchain(blockchainName string)} on MainNet; this can be refunded with a {\tt dropBlockchain(blockchainName string)} operation (taking place of {\tt startExit}).  When storage is used in {\tt blockchainName} through the activities of Layer 3 blockchains (as recorded by the Layer 2 blockchain below), this balance goes down.  Balances can added to and withdrawn by the owner of the blockchain.
 
 \item Layer 2 Plasma Cash Blockchain: The storage and retrieval of chunks in Cloudstore are exposed to Layer 3 blockchains with the following 2 APIs (see Appendix A):
 \begin{itemize}
     \item \texttt{storeChunk}$(k, v, \tau, \signature)$ - stores a key-value pair mapping $(k,v)$ in Cloudstore, backed by Layer 2 token $\tau$ (signed with $\signature$) received from the Layer 1 transaction.
     \item \texttt{retrieveChunk}$(k, \tau, \signature)$ - retrieves a key-value pair mapping $(k,v)$ in Cloudstore, backed by Layer 2 token $\tau$ (again, signed with $\signature$), and returning the balance of $\tau$ used so far
 \end{itemize}
-The Layer 2 operator will store via Cloudstore in as many regions and cloud providers as necessary to {\bf insure} the chunk as follows:  A new type of Layer 2 {\bf block transaction} insures a set of chunks recorded through \texttt{storeChunk} calls.  The cause of these chunks are from any Layer 3 blockchain needing storage and bandwidth, where bandwidth is used in \texttt{retrieveChunk} calls.  When a Layer 3 blockchain mints Layer 3 blocks, the Layer 3 blocks themselves contain a list of chunks.  The blocks themselves are submitted through \texttt{storeChunk} calls, signed by the Layer 3 blockchain owner, and the block hash $\blockhash{3}{k}$ is submitted by the Layer 3 blockchain to the Layer 2 blockchain via a $\submitblock{k}{\blockhash{3}{k}}$ block transaction.  This enables the Layer 2 blockchain to meter the cumulative storage of {\tt blockchainName} and deduct from the balance originally deposited in the $\texttt{createBlockchain(blockchainName string)}$ operation (approximately every 24 hours), passing on Cloudstore fiat and crypto costs to Layer 3 blockchains.  Notably, Layer 3 blocks themselves are recorded with $\texttt{storeChunk}(k, v, \tau, \signature)$ to store the layer 3 block in Cloudstore and then results in a call to $\submitblock{j}{\blockhash{3}{j}}$:
+The Layer 2 operator will store via Cloudstore in as many regions and cloud providers as necessary to {\bf insure} the chunk as follows:  A new type of Layer 2 {\bf block transaction} insures a set of chunks recorded through \texttt{storeChunk} calls.  The cause of these chunks are from any Layer 3 blockchain needing storage and bandwidth, where bandwidth is used in \texttt{retrieveChunk} calls.  When a Layer 3 blockchain mints Layer 3 blocks, the Layer 3 blocks themselves contain a Cloudstore key that references a list of chunks written in the Layer 3 block.  The block itself is stored in Cloudstore with another \texttt{storeChunk} call, signed by the Layer 3 blockchain owner, and the block hash $\blockhash{3}{k}$ is submitted by the Layer 3 blockchain to the Layer 2 blockchain via a $\submitblock{k}{\blockhash{3}{k}}$ block transaction.  This enables the Layer 2 blockchain to meter the cumulative storage of {\tt blockchainName} and deduct from the balance originally deposited in the $\texttt{createBlockchain(blockchainName string)}$ operation (approximately every 24 hours), passing on Cloudstore costs to Layer 3 blockchains.  Notably, Layer 3 blocks themselves are recorded with $\texttt{storeChunk}(k, v, \tau, \signature)$ to store the layer 3 block in Cloudstore and then results in a call to $\submitblock{j}{\blockhash{3}{j}}$:
 \begin{equation}
 \transaction{3}{j} \equiv \submitblock{j}{\blockhash{3}{j}}
 \end{equation}
@@ -247,15 +248,15 @@ Because the block storage is signed and because the block transactions are signe
 \item an account root, using an SMT to store an accounts ``balance'' and a list of tokens held by that account.
 \end{itemize}
 
-\item Layer 3 blockchains:  Any number of Layer 3 blockchains utilize storage and bandwidth can be layered on top of the Layer 2 blockchain, regularly submitting lists of chunks based on the structure of the Layer 3 blockchain.
+\item Layer 3 blockchains:  Any number of Layer 3 blockchains that utilize storage and bandwidth can be layered on top of the Layer 2 blockchain, regularly submitting lists of chunks based on the structure of the Layer 3 blockchain.
 \begin{itemize}
-    \item For NoSQL + File Storage, there is a key for each row of NoSQL or File, and a value for the row (a JSON record) or raw file contents.   The root hash changes when any table schema is updated, and where each table has a root hash that changes when any record of the table is changed; any new database content results in new chunks, where the chunk is referenced by the hash of its content.
+    \item For NoSQL + File Storage, there is a key for each row of NoSQL or File, and a value for the row (a JSON record) or raw file contents.   The root hash changes when any table is added/removed or when any table schema is updated, and where each table has a root hash that changes when any record of the table is changed; any new database content results in new chunks, where the chunk is referenced by the hash of its content.
     \item For SQL, there is a root hash for each database, where the root hash changes when any table schema is updated, and where each table has a root hash that changes when any record of the table is changed; any new database content results in new chunks, where the chunk is referenced by the hash of its content.
 \end{itemize}
-We develop both NoSQL and SQL Blockchains in Section ~\ref{sec:layer3}.
+We describe both NoSQL and SQL Blockchains in Section ~\ref{sec:layer3}.
 \end{itemize}
 
-\noindent Just as with Layer 1 blockchain nodes, running Layer 2 and Layer 3 blockchains consists of running a node in a peer-to-peer network, receiving and transmitting messages about new transactions and new blocks.   Our blockchain implementations of the Layer 2 and Layer 3 originated from the go-ethereum and JPMorgan Quorum RAFT code bases, written in Golang.  We used RAFT for both Layer 2 and Layer 3 implementations due to its simple model of finality.  For each blockchain, we created a Golang package containing each of the interfaces specified in Appendix A, and adapted Quorum RAFT code to conform to these interfaces.  There is no explicit assumption that  permissioned consensus algorithms be used, however.   The choice of RAFT was made purely out of simplicity, its maturity as a code base, and its capacity for high throughput -- any consensus protocol that achieves finality can fit within this deep blockchain architecture.  For both the Layer 2 and Layer 3 blockchains, we use a Sparse Merkle Tree to support provable data storage, which we review in detail next.
+\noindent Just as with Layer 1 blockchain nodes, running Layer 2 and Layer 3 blockchains consists of running a node in a peer-to-peer network, receiving and transmitting messages about new transactions and new blocks.   Wolk's blockchain implementations of the Layer 2 and Layer 3 originated from Ethereum's \href{https://github.com/ethereum/go-ethereum}{go-ethereum} and JPMorgan's \href{https://github.com/jpmorganchase/quorum}{Quorum RAFT} code bases, written in Golang.  We used RAFT for both Layer 2 and Layer 3 implementations due to its simple model of finality.  For each blockchain, we created a Golang package containing each of the interfaces specified in Appendix A, and adapted Quorum RAFT code to conform to these interfaces.  There is no explicit assumption that  permissioned consensus algorithms be used, however.   The choice of RAFT was made purely out of simplicity, its maturity as a code base, and its capacity for high throughput -- any consensus protocol that achieves finality can fit within this deep blockchain architecture.  For both the Layer 2 and Layer 3 blockchains, we use a \href{https://github.com/wolkdb/deepblockchains/smt}{Sparse Merkle Tree} to support provable data storage, which we review in detail next.
 
 \section{Sparse Merkle Trees and Provenance}
 
@@ -322,13 +323,7 @@ The sparseness of the SMT derives from the observation that keys will extremely 
 
 \section{Layer 3 Blockchains\label{sec:layer3}}
 
-With the foundations of Layer 2 providing storage and bandwidth paid for with Layer 2 tokens, any number of Layer 3 blockchains may be constructed.  We detail the construction of a NoSQL and SQL blockchain here.  Layer 3 blockchains record their block hashes in Layer 2, and because Layer 2 stores its block hashes in Layer 1 in the following way:
-\begin{itemize}
- \item Each SQL and NoSQL transaction is included in a Level 3 block
- \item Each Level 3 block has its hash included in a Level 2 block
- \item Each Level 2 block has its Merkle Root included in {\tt submitBlock} recorded in a Level 1 block
-\end{itemize}
-It then becomes possible to aggregate multiple proof of inclusions at the highest layers all the way to MainNet with Deep Merkle Proofs, which we illustrate here.
+With the foundations of Layer 2 providing storage and bandwidth paid for with Layer 2 tokens, any number of Layer 3 blockchains may be constructed.  We detail the construction of a NoSQL and SQL blockchain here.  At a high level, Layer 3 blockchains collate SQL and NoSQL transactions in Layer 3 blocks submit block transactions to Layer 2, and Layer 2 collate token and block transactions with Merkle Roots of token root and blocks submitted and included in transactions to Layer 1 blockchain.  It then becomes possible to aggregate multiple proof of inclusions at the highest layers all the way to MainNet with Deep Merkle Proofs, which we illustrate here.
 
 \subsection{Layer 3 NoSQL Blockchain and Deep Merkle Proofs}
 
@@ -340,7 +335,7 @@ To support Layer 3 NoSQL transactions in a NoSQL blockchain, the Layer 3 blockch
 \end{itemize}
 The minting of a new Layer 3 NoSQL Block consists of taking each of the Layer 3 transactions ($\texttt{SetKey}, \texttt{DeleteKey}$), executing  \texttt{storeChunk} Layer 2 API calls for its users.  Unless two transactions operate over the same key $k$, all transactions can be executed in parallel.  If multiple transactions operate over the same key, only the last received transaction will have its mutation succeed.
 
-Let us illustrate a detailed example, shown in Figure~\ref{deepmerkleproof}:
+We present a detailed example: (shown in Figure~\ref{deepmerkleproof})
 \begin{itemize}
 \item In Layer 3 Block 302, the user wishes store document ID 1 with key $K_1$ mapped to encrypted value $V_1$ and document ID 2 mapped to encrypted value $V_2$. The user can submit 2 Layer 3 NoSQL transactions:
 \begin{equation*}
@@ -405,7 +400,7 @@ To support Layer 3 SQL operations in a SQL blockchain, the Layer 3 block has a  
 
 In our implementation, we adapted Quorum RAFT as the consensus layer for our layer 3 SQL blockchain (again, following Appendix A), which collectively follow a consensus protocol where once a {\em leader} has been identified, the leader mints a new Layer 3 block based on:
 \begin{itemize}
-\item An array of SQL transactions that is mapped into newly created chunks (created via $\texttt{storeChunk}$ for table root hashes
+\item An array of SQL transactions that is mapped into newly created chunks (created via $\texttt{storeChunk}$ for table root hashes)
 \item An array of table root hashes, key-value pairs written to $\texttt{Layer3KeyRoot}$, based on the execution of the above SQL Transactions
 \end{itemize}
 The minting a layer 3 block consists of the leader compiling each SQL transaction into a set of instructions to executed by a ``SQL Virtual Machine'' (SVM) based off of the widely used SQLite's virtual machine.  In this model, a virtual machine has a program counter that increments or jumps to another line after the execution of each opcode instruction.  For example, a SQL statement of "Select * from person" received by a node is mapped into a interpretable set of opcodes like this:
@@ -431,9 +426,9 @@ A table must have at least one primary key.
 \end{itemize}
 Our current implementation has a full implementation of single table operations thus far, but with relational database operations approachable with the same dynamics:
 \begin{itemize}
-\item When an owner creates a new database, the owner chunk is updated and  database chunk is created and the owner chunk is updated with the new database chunk information. If this is the first database created by the owner, the root hash of the owner is set for the first time. The root hash of the database is set for the first time.
-\item When an owner creates a new table, the database chunk is updated and table chunk is created and the database chunk is updated with the new table information.  This also causes the owner chunk to be updated with the new database chunk information.  The root hash of the table is set for the first time in the child chain.
-\item When an owner creates or updates a table, this creates or changes the database schema chunk.  The database chunk is then updated with the new schema information, which in turn causes the owner chunk to be updated with the new database chunk information.  (Describe the updating of the chunk with the database schema, something about a root hash and child chain here?)
+\item When the owner of a Layer 3 blockchain creates a new database, the owner chunk is updated and  database chunk is created and the owner chunk is updated with the new database chunk information. If this is the first database created by the owner, the root hash of the owner is set for the first time. The root hash of the database is set for the first time.
+\item When the owner of a Layer 3 blockchain creates a new table, the database chunk is updated and table chunk is created and the database chunk is updated with the new table information.  This also causes the owner chunk to be updated with the new database chunk information.  The root hash of the table is set for the first time in the child chain.
+\item When the owner of a Layer 3 blockchain creates or updates a table, this creates or changes the database schema chunk.  The database chunk is then updated with the new schema information, which in turn causes the owner chunk to be updated with the new database chunk information.
 \item When an owner creates a new record in a table with a SQL statement such as
 \[
 \sql{insert into account (id, v) values (42, "minnie@ethmail.com")}
@@ -459,7 +454,7 @@ When the leader node of a Layer 3 SQL blockchain mints a Layer 3 block, it must 
 \begin{itemize}
 \item the SQL transactions -- where for each table referenced in the SQL, the leader must retrieve the previous root hash of the table in the SMT and execute the SVM operations for that table against that SMT's data.
 
-\item the ChunkIDs associated with the SQL operations, where chunks are only created, and never ``updated''.
+\item the Chunks newly written through the execution of the SQL transactions, where chunks are only created, and never ``updated''.
 
 \item a  new $\texttt{Layer3KeyRoot}$  transactions and calls $\submitblock{k}{\blockhash{3}{k}}$: for all tables updated from the SQL transactions, each table has a new root hash.
 Using the $\texttt{Layer3KeyRoot}$, any layer 3 node can respond to a SQL \sql{SELECT} query by retrieving the the previous hash of any table from the SMT.
@@ -483,13 +478,13 @@ which proceeds just as in the NoSQL blockchain, with the analogously structured 
 \end{figure}
 
 \section{Paying for Storage and Bandwidth}
-
-The Layer 3 blockchain users who store NoSQL/SQL/File data with \texttt{storeChunk} operations give permissions to be charged for bandwidth and storage in two different ways:
+The Layer 3 blockchain users who store NoSQL/SQL/File data with
+\texttt{storeChunk} operations give the Layer 2 operator permission to charge for bandwidth and storage in two different ways:
 
 \begin{enumerate}
-\item {\em Bandwidth} is paid for through (1) signed  \texttt{retrieveChunk}$(k, \tau, \signature)$ calls to retrieve data and obtain recent balances, where each call uses up a tiny amount of bandwidth backed for with a token $\tau$ originated by the \texttt{createBlockchain} call; (2) signed \texttt{updateBalance} calls to agree to recent balances
+\item {\em Bandwidth} is paid for through (1) signed  \texttt{retrieveChunk}$(k, \tau, \signature)$ calls to retrieve data and obtain recent balances, where each call uses up a tiny amount of bandwidth backed for with a token $\tau$ originated by the \texttt{createBlockchain} call; (2) signed a new \texttt{updateBalance} call to agree to recent balances;
 
-\item {\em Storage} is paid for through Block Transactions $\submitblock{k}{\blockhash{3}{k}}$ signed by the Layer 3 block operator - because chunks are identified directly inside Layer 3 blocks, a tally of the number of bytes used in each new layer 3 block is added to the SMT.
+\item {\em Storage} is paid for through Block Transactions $\submitblock{k}{\blockhash{3}{k}}$ signed by the Layer 3 blockchain operator - because chunks are identified directly inside Layer 3 blocks, a tally of the number of bytes used in each new layer 3 block is added to the SMT.  The Layer 1 contract then exposes \texttt{storageCharge} interface to the Layer 2 operator where a recently signed Layer 2 block transaction (containing a tally of the number of bytes, signed by the Layer 3 blockchain operator) is used to deduct the layer 3 operator's balance since the last time it was called.   This is detailed below.
 \end{enumerate}
 In this way Layer 3 Blockchains pay for the services of the Layer 2 blockchain.  The lifecycle of a short lived Layer 3 blockchain is shown in Figure~\ref{statechannel}, which we expound in the next section.
 
@@ -497,9 +492,9 @@ In this way Layer 3 Blockchains pay for the services of the Layer 2 blockchain. 
 
 In this section we  consider how Layer 2 Tokens can form a {\em unidirectional payment channel}, where each signed \texttt{retrieveChunk} call is not a transaction to be included in a Layer 2 block (and has no nonce to increment) but simply indicative of "permission to return some data and decrement my token balance"; where the Layer 2 operator can check the signature against its record of the current owner as a condition of looking up the chunk.
 
-The Layer 2 operator must have tally aggregation capability that can aggregate numerous signed calls together and compute that token $\tau$ has some new balance $\balance(\tau)$.  In our implementation we use a simple minute-wise Hadoop job to tally periodic flushes of \texttt{retrieveChunk} operations grouped by different $\tau$, keeping as a short-term output (TTL=3600s) log that each minutewise change of $\tau$ was caused by specific signed operations; this balance update log is exposed to the user.  When this internal tally reaches a critical threshold $\Sigma_{max}$, responses to \texttt{retrieveChunk} halts and can only resume with a \texttt{updateBalance} transaction submitted and included in the Layer 2 block directly in the SMT root \texttt{Layer2TokenRoot}.    To minimize disruptions from halting in this way, it is the responsiblity of the Layer 3 blockchain to periodically submit \texttt{updateBalance}, signing recent token balances provided in the  \texttt{retrieveChunk}.
+The Layer 2 operator must have tally aggregation capability that can aggregate numerous signed calls together and compute that token $\tau$ has some new balance $\balance(\tau)$.  In our implementation we use a simple minute-wise Hadoop job to tally periodic flushes of \texttt{retrieveChunk} operations grouped by different $\tau$, keeping as a short-term output (TTL=3600s) log that each minutewise change of $\tau$ was caused by specific signed operations; this balance update log is exposed to the user.  When this internal tally reaches a critical threshold $\Sigma_{max}$, responses to \texttt{retrieveChunk} halts and can only resume with a Layer 2 \texttt{updateBalance} transaction submitted and included in the Layer 2 block directly in the SMT root \texttt{Layer2TokenRoot}.   The threshold $\Sigma_{max}$ in the contract.  To minimize disruptions from halting in this way, it is the responsiblity of the Layer 3 blockchain to periodically submit \texttt{updateBalance}, signing recent token balances provided in the  \texttt{retrieveChunk}.
 
-Moreover, as the token has considerable usage accumulate, and as users regularly submit sufficiently \texttt{updateBalance} transactions to Layer 2, the value of the balance may accumulate to a great enough level that the Layer 2 operator may wish to withdraw the balance accumulated directly in the Layer 1 contract.   To support this, we expand the SMT state to include the token balance and the operator withdrawal amounts.
+Moreover, as the token has considerable usage accumulated, and as users regularly submit sufficient \texttt{updateBalance} transactions to Layer 2, the value of the balance may accumulate to a great enough level that the Layer 2 operator may wish to withdraw the balance accumulated directly in the Layer 1 contract.   To support this, we expand the SMT state to include the token balance and the operator withdrawal amounts.
 
 If users wish to transfer the token to another user of the layer 2 blockchain by submitting a token transfer operation, the \texttt{updateBalance} must be executed to ``close'' the token-based state channel.
 
@@ -507,15 +502,15 @@ Finally, users who wish to withdraw token $\tau$ for Layer 1 currency can do so 
 
 \subsection{Layer 1 Storage Insurance}
 
-Because every single write of a Layer 3 blockchain is included in sequentially ordered layer 3 blocks (each of which identify a set of Chunk IDs) the layer 3 blockchain forms an itemized list of signed insurance requests that form a Layer 1 unidirectional state channel initiate by the deposit into \texttt{createBlockchain}.  Assuming no challenges exist, if the Layer 2 operator that receives a Layer 3 block identifying a set of chunks can provide a recent proof of storage then it may deduct from this deposit.   On the other hand, if the layer 3 blockchain has reason to believe that some chunk is lost, it can submit its claim to Layer 1 smart contract and demand Merkle .   The CRASH patterns of \cite{swarm} specify this challenge-response system in detail, which we extend to our deep blockchain in the following way:
+Because every single write of a Layer 3 blockchain is included in sequentially ordered layer 3 blocks (each of which identify a set of Chunk IDs) the layer 3 blockchain forms an itemized list of signed insurance requests that form a Layer 1 unidirectional state channel initiated by the deposit into \texttt{createBlockchain}.  Assuming no challenges exist, if the Layer 2 operator that receives a Layer 3 block identifying a set of chunks can provide a recent proof of storage then it may deduct from this deposit.   On the other hand, if the layer 3 blockchain has reason to believe that some chunk is lost, it can submit its claim to Layer 1 smart contract and demand Merkle proofs in response.   The CRASH patterns of \cite{swarm} specify this challenge-response system in detail, which we extend to our deep blockchain in the following way:
 \begin{itemize}
-    \item  {\em Insurance Request.} Each Layer 3 block $\block{3}{j}$ ( submitted to the Layer 2 operator in the block transaction $\submitblock{j}{\blockhash{3}{j}}$ calls ) includes (1) a seed hash $\seedhash$, where the seed $\seed$ ($\seedhash=\hash{\seed}$) is held solely by the layer 3 operator and  revealed when the layer 3 operator wishes to challenge the Layer 2 operator with \texttt{storageChallenge} (see below); (2) the hash of an SMT Merkle root $H(\Xi)$ for all the chunks specified in the layer 3 block using $\seed$; (3)   the {\em total} collection size in bytes $\sigma_{total}$ in {\em all} Layer 3 blocks; (4) a $\maxstoragecost$ parameter, the amount of layer 1 currency required to hold 1 GB per month (e.g. if market conditions for keeping data in 8 places in Cloudstore is $\$.25$ GB/mo and Layer 1 currency is $\$500/ETH$, then $\maxstoragecost$ would be $5\times10^14$ wei).  The Layer 2 operator uses $\keyroot$ to fetch the list of chunks the Layer 3 operator wishes to insure, verify that all chunks in the list are in fact available, and check that $\sigma_{total}$ matches the  Layer 2 operators own tally closely.  The chunks are missing, or the tally is not reasonable, the Laye 2 operator may reject the block.  Otherwise, the Layer 2 blockchain will include the Layer 3 block hash in the  \texttt{BlockRoot} of the next Layer 2 block.  In this way, the block transaction is taken as a signed request to insure the entire Layer 3 blockchain's storage.
+    \item  {\em Insurance Request.} Each Layer 3 block $\block{3}{j}$ ( submitted to the Layer 2 operator in the block transaction $\submitblock{j}{\blockhash{3}{j}}$ calls ) includes (1) a seed hash $\seedhash$, where the seed $\seed$ ($\seedhash=\hash{\seed}$) is held solely by the layer 3 operator and  revealed when the layer 3 operator wishes to challenge the Layer 2 operator with \texttt{storageChallenge} (see below); (2) the hash of an SMT Merkle root $H(\Xi)$ for all the chunks specified in the layer 3 block using $\seed$; (3)   the {\em total} collection size in bytes $\sigma_{total}$ in {\em all} Layer 3 blocks; (4) a $\maxstoragecost$ parameter, the amount of layer 1 currency required to hold 1 GB per month (e.g. if market conditions for keeping data in 8 places in Cloudstore is $\$.25$ GB/mo and Layer 1 currency is $\$500/ETH$, then $\maxstoragecost$ would be $5\times10^14$ wei).  The Layer 2 operator uses $\keyroot$ to fetch the list of chunks the Layer 3 operator wishes to insure, verifies that all chunks in the list are in fact available, and checks that $\sigma_{total}$ matches the  Layer 2 operators own tally closely.  If the chunks are missing, or the tally is not reasonable, the Layer 2 operator may reject the block.  Otherwise, the Layer 2 blockchain will include the Layer 3 block hash in the  \texttt{BlockRoot} of the next Layer 2 block.  In this way, the block transaction is taken as a signed request to insure the entire Layer 3 blockchain's storage.
 
     \item {\em Storage Charges}.   Under ordinary conditions, the layer 2 operator can submit the most recent proof of any signed block transaction to the Layer 1 smart contract function:
     \[
     \texttt{storageCharge(blockchainName string, txbytes bytes, storagecost uint64, sig bytes)}
     \]
-    Since \texttt{txbytes}  contains $\sigma_{total}$ and $\maxstoragecost$, the \texttt{storageCharge} function can deduct from balance originally deposited via $\texttt{createDatabase}$ since the last time \texttt{storageCharge} was called.
+    Since \texttt{txbytes}  contains $\sigma_{total}$ and $\maxstoragecost$, the \texttt{storageCharge} function can deduct from balance originally deposited via $\texttt{createBlockchain}$ since the last time \texttt{storageCharge} was called.
 
     \item {\em Storage Challenge-Response: CRASH proofs}. If at any time, the Layer 3 blockchain wishes to challenge Layer 2's inept storage (due to a missing block or missing chunk included in the block), it may do so by demanding a {\em CRASH proof} of a specific layer 3 block, revealing $\seed$ (which must match the $\seedhash$ in $\texttt{txbytes}$) by calling:
     \[
@@ -527,7 +522,7 @@ Because every single write of a Layer 3 blockchain is included in sequentially o
     \]
     This payout must come from a registered balance held in the Layer 1 Smart Contract.  The response must be a valid proof whose root $\Xi$ that matches $\hash{\Xi}$ originally supplied for the block.   Finally, to guard against the situation that some layer 3 operator supplies a bogus $\hash{\Xi}$ in the block transaction to claim this payout, the layer 2 operator can supply a small number (e.g. 5) of Merkle branches resolving to $\keyroot$.  We are refining the economic incentives of this challenge-response system to balance the layer 2 and layer 3 operators in this challenge-response pattern to be reasonable relative to Layer 1 Ethereum gas costs.
 \end{itemize}
-With the above mechanism in place, the layer 2 operator can charge the layer 3 operator when transaction fees are negligible.  In regular conditions, the Layer 3 blockchain  can see its storage fees through $\texttt{storageCharge}$; when the balance approaches zero, the layer 3 blockchain must deposit additional to its blockchain account for continued storage.  Finally, a call to $\texttt{dropBlockchain}$ must permit the layer 2 operator the opportunity to claim a final $\texttt{storageCharge}$ and close out the bandwidth balance of $\tau$ before  finalizing exits (see Figure~\ref{statechannel}).  Since there are two sources of demand (storage charge and bandwidth charges), the layer 2 blockchain must check that the sum of both sources equal the available balance for the layer 3 blockchain.
+With the above mechanism in place, the layer 2 operator can charge the layer 3 operator when transaction fees are negligible.  In regular conditions, the Layer 3 blockchain  can see its storage fees through $\texttt{storageCharge}$; when the balance approaches zero, the Layer 3 blockchain must deposit additional Layer 1 currency to its blockchain balance at Layer 1.  Finally, a call to $\texttt{dropBlockchain}$ must permit the layer 2 operator the opportunity to claim a final $\texttt{storageCharge}$ and close out the bandwidth balance of $\tau$ before  finalizing exits (see Figure~\ref{statechannel}).  Since there are two sources of demand (storage charge and bandwidth charges), the layer 2 blockchain must check that the sum of both sources equal the available balance for the layer 3 blockchain.
 
 \section{Discussion}
 
@@ -555,9 +550,9 @@ Blockchain practitioner instincts are to be wary of centralized consensus protoc
 \item the use of Ethereum SWARM (currently in POC3) as a {\em censorship-resistant} cloud storage provider.  In the event that the Layer 2 blockchain provider loses access to its Cloud Storage backend, higher layer backends can simply request chunks using the Kademlia-based DHT of Ethereum SWARM.  Generally this censorship-resistance comes at the cost of higher latency responses.
 \item cryptoeconomic incentives, wherein if a data storer can prove (with a Merkle branch) that a piece of data can no longer be accessed but has been included on chain through a valid Merkle branch
 \end{itemize}
-We believe the combination of decentralized storage and cloud computing storage increases the cost of attack and that the Blockchain 1.0 Objective of {\em Maximize decentralization} must be altered in favor of the more nuanced Blockchain 2.0 Objective {\em Maximize cost of attack}, which ultimately will lead to more secure and reliable blockchain systems.
+We believe the combination of decentralized storage and cloud computing storage increases the cost of attack and that the Blockchain 1.0 Objective of {\em Maximize decentralization} must be altered in favor of the more nuanced Blockchain 2.0 Objective {\em Maximize cost of attack}, which ultimately will lead to more secure and reliable blockchain systems.  We get the best of both worlds: from centralized storage we get low-latency, high-throughput infrastructure, and from decentralized storage we get resilience and censorship resistance.
 
-Concerning the use of a single centralized Layer 2 operator, we highlight that in all cases where Layer 1 currency is deposited (in \texttt{createDatabase}), because use of the ``Plasma Cash'' design pattern, the owner of the tokens may withdraw its balance on the Layer 1 blockchain.  This is a surprising result: that checks and balances on token ownership are possible through the use of the Layer 1 blockchain despite the Plasma operator being in 100\% control; if users discover that the Layer 2 blockchain operators are malicious, they can be certain they can get the value of their tokens back, and if the data is kept in resilient Ethereum SWARM (or if they have kept their data locally), they can move to another Layer 2 operator using  the same protocol.
+Concerning the use of a single centralized Layer 2 operator, we highlight that in all cases where Layer 1 currency is deposited (in \texttt{createBlockchain}), because use of the ``Plasma Cash'' design pattern, the owner of the tokens may withdraw its balance on the Layer 1 blockchain.  This is a surprising result: that checks and balances on token ownership are possible through the use of the Layer 1 blockchain despite the Plasma operator being in 100\% control; if users discover that the Layer 2 blockchain operators are malicious, they can be certain they can get the value of their tokens back, and if the data is kept in resilient Ethereum SWARM (or if they have kept their data locally), they can move to another Layer 2 operator using  the same protocol.
 
 
 This shows a deep blockchain that has a higher cost of attack than the deep blockchain illustrated in Figure~\ref{deepblockchain}, utilizing $N_2$ Layer 2 blockchains (each with their own Cloudstore) and $N_1$ Layer 1 blockchains, each receiving the same Layer 3 \texttt{submitBlock} and Layer 2 \texttt{submitBlock} transactions respectively:
@@ -566,7 +561,7 @@ This shows a deep blockchain that has a higher cost of attack than the deep bloc
 \centerline{\includegraphics[width=12cm]{DeepBlockchain2.png}} \\
 \end{tabular}
 
-\noindent Because the retrieval of layer $i+1$ data from layer $i$ can be verified by layer $i+1$ (checking block data: does the block hash match the block content?  is it signed?  does it have a parent hash? etc.; checking chunks: does the hash of the chunk data equal the chunk key), each lower layer node devolves into a dumb storage layer with some failure or attack probability ($p^2_{1}..p^2_{N_2}$ for layer 2 blockchains, $p_1^{1}..p^1_{N_1}$ for layer 1 blockchains -- depending on this probabilistic model, the cost of attack may be divined.   However, it seems most likely that motivated parties would attack the centralized control behind each layer (c.f. via EIP999, mining pools arewedecentralizedyet.com, governments asking the Cloudstore providers to block Layer 2 operator's accounts) -- in this sense the probabilistic independence in concentrated efforts to attack layer 1 and 2 would be highly suspect.   For this reason, our true faith relies in Ethereum SWARM's {\em resource updates} (\cite{swarm}), where chunks may be keyed not by the hash of their content but with a {\em resource key}, which can be used for the block data without an index mechanism; all resource updates are signed so the reader can authenticate.  Ethereum SWARM, because of its use of Kademlia-like protocol, is not naturally as fast as other components in Cloudstore, but kicks in when all Layer 2 blockchains Cloudstore fail or when Layer 1 itself is attacked (via 51\% attacks, or unknown POS failures).   If other decentralized storage services provided similar provable storage as Ethereum SWARM's resource update, so long as Layer 3 blockchain does not go Byzantine, only one answer can surface, making for unstoppable layer 3 blockchains.
+\noindent Because the retrieval of layer $i+1$ data from layer $i$ can be verified by layer $i+1$ (checking block data: does the block hash match the block content?  is it signed?  does it have a parent hash? etc.; checking chunks: does the hash of the chunk data equal the chunk key), each lower layer node devolves into a dumb storage layer with some failure or attack probability ($p^2_{1}..p^2_{N_2}$ for layer 2 blockchains, $p_1^{1}..p^1_{N_1}$ for layer 1 blockchains) -- depending on this probabilistic model, the cost of attack may be divined.   However, it seems most likely that motivated parties would attack the centralized control behind each layer (c.f. via EIP999, mining pools arewedecentralizedyet.com, governments asking the Cloudstore providers to block Layer 2 operator's accounts) -- in this sense the probabilistic independence in concentrated efforts to attack layer 1 and 2 would be highly suspect.   For this reason, our true faith relies in Ethereum SWARM's {\em resource updates} (\cite{swarm}), where chunks may be keyed not by the hash of their content but with a {\em resource key}, which can be used for the block data without an index mechanism; all resource updates are signed so the reader can authenticate.  Ethereum SWARM, because of its use of Kademlia-like protocol, is not naturally as fast as other components in Cloudstore, but kicks in when all Layer 2 blockchains Cloudstore fail or when Layer 1 itself is attacked (via 51\% attacks, or unknown POS failures).   If other decentralized storage services provided similar provable storage as Ethereum SWARM's resource update, so long as Layer 3 blockchain does not go Byzantine, only one answer can surface, making for unstoppable layer 3 blockchains.
 
 The Layer 3 NoSQL and SQL blockchains developed in this paper operated under an assumption that the NoSQL + SQL transactions should be private data secured by an encryption key known only to the operators of the Layer 3 blockchain.   This protects the Layer 3 blockchain from operators of Layer 2 blockchain and any Cloudstore.  However, the same problem as with standard databases (MySQL, MongoDB, DynamoDB, etc.) exists with our current implementation of NoSQL/SQL Layer 3 blockchains: once someone gets access to a Layer 3 blockchain node holding the database encryption key or private key, the entire database is compromised. Therefore, provenance and immutability of the NoSQL/SQL database state changes, as manifested in Deep Merkle Proofs, differentiate a Layer 3 blockchain from standard databases. The small latency incurred with permissioned protocols (RAFT, POA) and negligible cost should be welcomed when provenance and immutability are of paramount concern.  For future work, we will be guided by Objective 2.0, in seeking to maximize the cost of attack.
 
