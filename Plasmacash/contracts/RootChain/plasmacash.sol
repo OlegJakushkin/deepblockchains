@@ -20,7 +20,7 @@
  * @author Michael Chung (michael@wolk.com)
  */
 
- // abigen --abi plasmacash.abi --pkg plasmachain --type PlasmaCash --out plasmacash.go
+
 pragma solidity ^0.4.24;
 
 import './TxHash.sol';
@@ -78,10 +78,11 @@ contract PlasmaCash {
     // @param blkRoot The root of a child chain block
     // @param blknum The child chain block number
     function submitBlock(bytes32 _blkRoot, uint64 _blknum) public isAuthority {
-        //require(currentBlkNum + 1 == _blknum);
-        //currentBlkNum += 1;
+        /* test-only: mutable blockroot */
         childChain[_blknum] = _blkRoot;
         currentBlkNum = _blknum;
+        //require(currentBlkNum + 1 == _blknum);
+        //currentBlkNum += 1;
         emit PublishedBlock(_blkRoot, _blknum, currentDepositIndex);
     }
 
@@ -89,7 +90,7 @@ contract PlasmaCash {
     function deposit() public payable {
         require (msg.value < (2**64 - 2) ); //18.446744073709551615Eth
         uint64 depositAmount = uint64(msg.value % (2 ** 64)) ;
-        uint64 tokenID = uint64(uint256(smt.Keccak256(msg.sender, currentDepositIndex, depositAmount)) % (2 ** 64));
+        uint64 tokenID = uint64(uint256(keccak256(abi.encodePacked(msg.sender, currentDepositIndex, depositAmount))) % (2 ** 64));
         require (depositAmount > 0 && depositBalance[tokenID] == 0);
         depositBalance[tokenID] = depositAmount;
         depositIndex[currentDepositIndex] = tokenID;
@@ -99,11 +100,10 @@ contract PlasmaCash {
 
     // @dev Allows original owner to submit withdraw request [bond will be added in futre]
     function depositExit(uint64 _depositIndex) public {
-
         require(exits[tokenID].exitableTS == 0);
         uint64 tokenID = depositIndex[_depositIndex];
         uint64 denomination = depositBalance[tokenID];
-        require(uint64(uint256(smt.Keccak256(msg.sender, _depositIndex, denomination)) % (2 ** 64)) == tokenID);
+        require(uint64(uint256(keccak256(abi.encodePacked(msg.sender, _depositIndex, denomination))) % (2 ** 64)) == tokenID);
         require(denomination > 0);
         exitTX memory exitx = exitTX(0, currentBlkNum, msg.sender, block.timestamp + 60, msg.value);
         addExitToQueue(tokenID, _depositIndex, exitx);
@@ -112,10 +112,9 @@ contract PlasmaCash {
 
     // @ dev Takes in the transaction transfering ownership to the current owner and the proofs necesary to prove there inclusion
     function startExit(uint64 tokenID, bytes txBytes1, bytes txBytes2, bytes proof1, bytes proof2, uint64 blk1, uint64 blk2) public {
-
         require(exits[tokenID].exitableTS == 0);
-        TxHash.TX memory tx2 = txBytes2.getTx();
-        TxHash.TX memory tx1 = txBytes1.getTx();
+        TxHash.TXN memory tx2 = txBytes2.getTx();
+        TxHash.TXN memory tx1 = txBytes1.getTx();
         require(tx2.Recipient == msg.sender, "unauth exit");
         require(tx1.TokenId == tokenID && tx2.TokenId == tokenID, "tokenID mismatch");
         require(txBytes1.verifyTX(), "tx1 sig failure");
@@ -124,8 +123,8 @@ contract PlasmaCash {
         require(blk1 == tx2.PrevBlock, "potential challengeBetween");
 
         //checkMembership(leaf, root, tokenID, proof);
-        require(smt.checkMembership(smt.Keccak256(txBytes1),childChain[blk1],tx1.TokenId, proof1), "tx1 non member");
-        require(smt.checkMembership(smt.Keccak256(txBytes2),childChain[blk2],tx2.TokenId, proof2), "tx2 non member");
+        require(smt.checkMembership(keccak256(txBytes1),childChain[blk1],tx1.TokenId, proof1), "tx1 non member");
+        require(smt.checkMembership(keccak256(txBytes2),childChain[blk2],tx2.TokenId, proof2), "tx2 non member");
 
         //StartExit. bond(currently not required)
         exitTX memory exitx = exitTX(blk1, blk2, msg.sender, block.timestamp + 60, msg.value);
@@ -137,13 +136,12 @@ contract PlasmaCash {
 
     // @ dev Submit proof that the exiting uid has been spent on the child chain either between the prevTx and tx or after the exit has been triggered. proving that the owner of the exiting uid is illegitimate
     function challenge(uint64 tokenID, bytes txBytes, bytes proof, uint64 blk) public {
-
         exitTX memory exitx = exits[tokenID];
         require((blk > exitx.txblk2) || (exitx.txblk1 < blk && blk < exitx.txblk2), "invalid txn bound");
-        TxHash.TX memory tx = txBytes.getTx();
+        TxHash.TXN memory tx = txBytes.getTx();
         require(tx.TokenId == tokenID, "tokenID mismatch");
         require(txBytes.verifyTX(), "sig failure");
-        require(smt.checkMembership(smt.Keccak256(txBytes),childChain[blk],tx.TokenId, proof), "non member");
+        require(smt.checkMembership(keccak256(txBytes),childChain[blk],tx.TokenId, proof), "non member");
 
         //valid challenge, exitx removed from queue
         delete exits[tokenID];

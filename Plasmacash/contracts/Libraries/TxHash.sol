@@ -22,7 +22,11 @@
  * @dev Library for verifying plasmacash txn.
  */
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
+
+import './RLP.sol';
+import './RLPEncode.sol';
+import './ECRecovery.sol';
 
 library TxHash {
 
@@ -32,7 +36,7 @@ library TxHash {
     using RLPEncode for bytes[];
     using RLPEncode for bytes;
 
-    struct TX {
+    struct TXN {
         uint64  TokenId;
         uint64  Denomination;
         uint64  DepositIndex;
@@ -53,7 +57,7 @@ library TxHash {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         if ((rlpTx[3].toUint() == 0)) {
             //If prevBlock = 0, check whether last 8 bytes of keccak256(recipient, depositIndex, denomination) == tokenID
-            return uint256(keccak256(rlpTx[5].toAddress(),uint64(rlpTx[2].toUint()),uint64(rlpTx[1].toUint()))) % (2**64) == (rlpTx[0].toUint());
+            return uint256(keccak256(abi.encodePacked(rlpTx[5].toAddress(),uint64(rlpTx[2].toUint()),uint64(rlpTx[1].toUint())))) % (2**64) == (rlpTx[0].toUint());
         }
         bytes[] memory unsignedTx = new bytes[](9);
         bytes memory sig;
@@ -146,17 +150,17 @@ library TxHash {
         return uint64(rlpTx[1].toUint() - rlpTx[6].toUint() - rlpTx[7].toUint());
     }
 
-    function getTx(bytes memory txBytes) internal view returns (TX memory) {
+    function getTx(bytes memory txBytes) internal view returns (TXN memory) {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        TX memory tx;
-        tx.TokenId =  uint64(rlpTx[0].toUint());
-        tx.Denomination =  uint64(rlpTx[1].toUint());
-        tx.DepositIndex =  uint64(rlpTx[2].toUint());
-        tx.PrevBlock =  uint64(rlpTx[3].toUint());
-        tx.PrevOwner =  rlpTx[4].toAddress();
-        tx.Recipient =  rlpTx[5].toAddress();
-        tx.Allowance =  uint64(rlpTx[6].toUint());
-        tx.Spent =  uint64(rlpTx[7].toUint());
-        return tx;
+        TXN memory txn;
+        txn.TokenId =  uint64(rlpTx[0].toUint());
+        txn.Denomination =  uint64(rlpTx[1].toUint());
+        txn.DepositIndex =  uint64(rlpTx[2].toUint());
+        txn.PrevBlock =  uint64(rlpTx[3].toUint());
+        txn.PrevOwner =  rlpTx[4].toAddress();
+        txn.Recipient =  rlpTx[5].toAddress();
+        txn.Allowance =  uint64(rlpTx[6].toUint());
+        txn.Spent =  uint64(rlpTx[7].toUint());
+        return txn;
     }
 }

@@ -22,7 +22,7 @@
  * @dev sparse merkle tree implementation.
  */
 
-pragma solidity ^0.4.20;
+pragma solidity ^0.4.24;
 
  contract SparseMerkle {
 
@@ -35,7 +35,7 @@ pragma solidity ^0.4.20;
      function setDefaultHashes(uint8 startIndex, uint8 endIndex) internal {
          require(defaultHashes[startIndex] != 0 && defaultHashes[endIndex] == 0);
          for (uint8 i = startIndex; i < endIndex ; i += 1) {
-             defaultHashes[i+1] =  keccak256(defaultHashes[i], defaultHashes[i]);
+             defaultHashes[i+1] =  keccak256(abi.encodePacked(defaultHashes[i], defaultHashes[i]));
          }
      }
 
@@ -61,9 +61,9 @@ pragma solidity ^0.4.20;
                  assembly { proofElement := mload(add(proof, p)) }
              }
              if (index % 2 == 0) {
-                 computedHash = keccak256(computedHash, proofElement);
+                 computedHash = keccak256(abi.encodePacked(computedHash, proofElement));
              }else{
-                 computedHash = keccak256(proofElement, computedHash);
+                 computedHash = keccak256(abi.encodePacked(proofElement, computedHash));
              }
              proofBits = proofBits / 2;
              index = index / 2;
