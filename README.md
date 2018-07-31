@@ -11,7 +11,7 @@ We describe in particular a 3-layer blockchain for provable storage and bandwidt
 
 Layers 2 and 3 utilize a Cloudstore abstraction to store and retrieve blocks and the chunks created by these blocks in Ethereum SWARM and multiple cloud computing providers. We demonstrate repeated use of Sparse Merkle Trees and show how this construct can be used in our core deep blockchain to provide provable data storage with Deep Merkle Proofs. We aim to demonstrate implementation results of high-throughput, low-latency layer 3 blockchains resting on  economically secure Layer 2 Plasma Cash blockchains, taken together which are fundamentally capable of scaling for modern web applications.
 
-[Download DeepBlockchains paper](https://github.com/wolkdb/deepblockchains/blob/master/Deep_Blockchains.pdf)
+[Download Deep Blockchains paper](https://github.com/wolkdb/deepblockchains/blob/master/Deep_Blockchains.pdf)
 
 ## Layer 1: Root Chain Plasma Contract
 
