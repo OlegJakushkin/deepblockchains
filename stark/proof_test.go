@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"runtime"
 	"testing"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 // Full STARK test
 func TestStark(t *testing.T) {
-
+	runtime.GOMAXPROCS(NUM_CORES)
 	INPUT := big.NewInt(3)
 	LOGSTEPS := big.NewInt(13)
 
@@ -28,7 +29,7 @@ func TestStark(t *testing.T) {
 
 	// Generate STARK proof
 	start := time.Now()
-	proof, err := mk_mimc_proof(f, INPUT, two_logsteps, constants)
+	proof, err := NewProof(f, INPUT, two_logsteps, constants)
 	if err != nil {
 		t.Fatalf("Err: %v", err)
 	}
@@ -52,10 +53,9 @@ func TestStark(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Err: %v", err)
 	}
-
+	fmt.Printf("------\n")
 	// Verify STARK proof
 	start = time.Now()
-	output := f.mimc(INPUT, two_logsteps, constants)
-	verify_mimc_proof(f, INPUT, two_logsteps, constants, output, &prf)
+	VerifyProof(f, INPUT, two_logsteps, constants, &prf)
 	fmt.Printf("STARK verified in %s\n", time.Since(start))
 }

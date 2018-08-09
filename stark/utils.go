@@ -34,6 +34,17 @@ func is_a_power_of_2(x *big.Int) bool {
 	return is_a_power_of_2(y)
 }
 
+func BigToBytes(i *big.Int) []byte {
+	b := i.Bytes()
+	out := make([]byte, 32)
+	copy(out[(32-len(b)):32], b[0:len(b)])
+	return out
+}
+
+func BytesToBig(i []byte) *big.Int {
+	return new(big.Int).SetBytes(i)
+}
+
 // Get the set of powers of R, until but not including when the powers loop back to 1
 func get_power_cycle(r *big.Int, modulus *big.Int) []*big.Int {
 	o := make([]*big.Int, 0)
