@@ -1,7 +1,7 @@
 
 # Plasma Cash Chain
 
-Plasma Cash rootchain contract implementation by @wolkinc.  For background, please read:
+A Reference Plasma Cash rootchain contract implementation by @wolkinc. For background, please read:
 
 * [Plasma Cash with Sparse Merkle Trees, Bloom filters, and Probabilistic Transfers](https://ethresear.ch/t/plasma-cash-with-sparse-merkle-trees-bloom-filters-and-probabilistic-transfers/2006)
 
@@ -21,7 +21,13 @@ Plasma Cash rootchain contract implementation by @wolkinc.  For background, plea
 
 * [swarmdb](https://github.com/wolkdb/swarmdb): Main repository to our decentralized database v0.1 release
 
-* [API](https://docs.wolk.com/): documentation of exposed swarmdb API interface
+* [API](https://docs.wolk.com/): documentation of exposed swarmdb API interface 
+
+
+## Implementation Note 
+We started out loosely following [Karl's](https://karl.tech/plasma-cash-simple-spec/) Simple Spec for our early implementation. Now we are augmenting our plasma to support the *Deep BlockChains* architecture described in our [paper](https://github.com/wolkdb/deepblockchains/blob/master/Deep_Blockchains.pdf). Currently we are exploring a more gerneral "plasma debt" concept, where network fees can flow between token owner and operator; we are also extending the original {deposit, exit} scheme with partial withdraw functionality, which will enable operator to withdraw fees without forcing users to exist tokens on the mainNet.
+
+Most importantly, we have made our plasma both stateful and stateless!  
 
 ## Contacts
 
@@ -54,21 +60,24 @@ Generally speaking, plasma nodes are required to be online at all time and watch
 # Plasma Node
 To run a plasma node:
 ```
-# build plasma
+# Build plasma binary
 $ make plasma
 
-# run plasma node, peer with master, neighbors, etc.
-$ ./build/bin/plasma --verbosity 4 --datadir ~/Library/Ethereum/
-Deposit:  TokenId b437230feb2d24db | Denomination 1000000000000000000 | DepositIndex 0  (Depositor: 0xA45b77a98E2B840617e2eC6ddfBf71403bdCb683)
-Deposit:  TokenId 37b01bd3adfc4ef3 | Denomination 1000000000000000000 | DepositIndex 1  (Depositor: 0x82Da88C31E874C678D529ad51E43De3A4BAF3914)
-Deposit:  TokenId b76883d225414136 | Denomination 2000000000000000000 | DepositIndex 2  (Depositor: 0x3088666E05794d2498D9d98326c1b426c9950767)
-Deposit:  TokenId 9af84bc1208918b | Denomination 3000000000000000000 | DepositIndex 3  (Depositor: 0xBef06CC63C8f81128c26efeDD461A9124298092b)
-Deposit:  TokenId 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6)
-Deposit:  TokenId 5fb1eec526dc7a1e | Denomination 5000000000000000000 | DepositIndex 5  (Depositor: 0x59B66c66b9159b62DaFCB5fEde243384DFca076D)
-...
-which will start off with some sample deposits
-```
+# Run POA plasma node, startign RPC services at port 8502
+$ ./build/bin/plasma --datadir /tmp/datadir3 --plasma.datadir /tmp/plasma3 --port 30303  --verbosity 4 --rpc --rpcaddr "localhost" --rpcport 8502 --rpcapi "personal,db,eth,net,web3,swarmdb,plasma"
 
+# (Optional) Run multiple plasma nodes, peer with master, neighbors, etc.
+$ ./build/bin/plasma --datadir /tmp/datadir4 --plasma.datadir /tmp/plasma4 --port 30304  --verbosity 4
+$ ./build/bin/plasma --datadir /tmp/datadir5 --plasma.datadir /tmp/plasma5 --port 30305  --verbosity 4
+
+Deposit:  TokenID b437230feb2d24db | Denomination 1000000000000000000 | DepositIndex 0  (Depositor: 0xA45b77a98E2B840617e2eC6ddfBf71403bdCb683)
+Deposit:  TokenID 37b01bd3adfc4ef3 | Denomination 1000000000000000000 | DepositIndex 1  (Depositor: 0x82Da88C31E874C678D529ad51E43De3A4BAF3914)
+Deposit:  TokenID b76883d225414136 | Denomination 2000000000000000000 | DepositIndex 2  (Depositor: 0x3088666E05794d2498D9d98326c1b426c9950767)
+Deposit:  TokenID 9af84bc1208918b | Denomination 3000000000000000000 | DepositIndex 3  (Depositor: 0xBef06CC63C8f81128c26efeDD461A9124298092b)
+Deposit:  TokenID 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6)
+Deposit:  TokenID 5fb1eec526dc7a1e | Denomination 5000000000000000000 | DepositIndex 5  (Depositor: 0x59B66c66b9159b62DaFCB5fEde243384DFca076D)
+...
+```
 *Note*: [wolk-Plasma core](https://github.com/wolkdb/plasma) backend are yet to be released after security audit.
 
 ## RPC Interface
@@ -78,113 +87,131 @@ Plasma nodes serve its users ("wolk" nodes) with RPC calls that can be tested on
 $ ./build/bin/plasma attach ~/Library/Ethereum/plasmachain.ipc
 > plasma
 {
+  getAnchor: function(),
+  getAnchorTransactionPool: function(),
+  getChunk: function(),
   getPlasmaBalance: function(),
   getPlasmaBlock: function(),
   getPlasmaBloomFilter: function(),
   getPlasmaToken: function(),
   getPlasmaTransactionPool: function(),
   getPlasmaTransactionReceipt: function(),
-  sendPlasmaTransaction: function()
+  sendAnchorTransaction: function(),
+  sendPlasmaTransaction: function(),
+  setChunk: function()
 }
 ```
 This JSON-RPC API implements the following concepts:
 
-* `getPlasmaBalance(address)` - get a list of tokenIDs, denominations, and total balance owned by address(account).  This might go into a "Wallet" abstraction, to start up your own token list, where any tokenID in the Wallet could be verified.
-
+* `getPlasmaBalance(address bytes20)` - get a list of tokenIDs, denominations, and total balance owned by address(account).  This might go into a "Wallet" abstraction, to start up your own token list, where any tokenID in the Wallet could be verified.
 ```
-> plasma.getPlasmaBalance("0x82Da88C31E874C678D529ad51E43De3A4BAF3914")
+> plasma.getPlasmaBalance("0x3088666E05794d2498D9d98326c1b426c9950767");
 {
-  balance: 1000000000000000000,
-    tokens: [
-        {
-            "token": 4012737863958155000,
-            "denomination": 1
-        }
-    ]
+    balance: 2000000000000000000,
+    denominations: [2000000000000000000],
+    tokens: ["0xb76883d225414136"]
 }
 ```
 
-* `getPlasmaToken(common.Hash)` - get token Info by tokenID. This can used by a node to verify token ownership when receiving a token from sender.
+
+* `getPlasmaToken(tokenID uint64, blockNumber uint64)` - get token by tokenID and targeted blockNumber. This can used by a node to verify token ownership when receiving a token from sender.
 ```
-> plasma.getPlasmaToken("0x000000000000000000000000000000000000000000000000b437230feb2d24db")
+ Note: Does not support tokenInfo trie
+> plasma.getPlasmaToken("0xb437230feb2d24db" , 1)
 {
-  denomination: 1000000000000000000,
-  depositIndex: 0,
-  depositor: "0xa45b77a98e2b840617e2ec6ddfbf71403bdcb683",
-  lastBlock: 0,
-  owner: "0xa45b77a98e2b840617e2ec6ddfbf71403bdcb683",
-  prevBlock: 0,
-  tokenID: "b437230feb2d24db"
+    allowance: "0x0",
+    balance: "0xde0b6b3a7640000",
+    denomination: "0xde0b6b3a7640000",
+    owner: "0xa45b77a98e2b840617e2ec6ddfbf71403bdcb683",
+    prevBlock: 1,
+    spent: "0x0"
 }
 ```
-_TODO: convert 256bit to 64-bit_
 
-* `getPlasmaBloomFilter(hash)` - get Bloom Filter by hash. Bloom Filter is required for a node to efficiently validate token transfers.
+* `getPlasmaBloomFilter(bloomID bytes32)` - get Bloom Filter by bloomID. Bloom Filter is required for a node to efficiently validate token transfers.
 ```
-> plasma.getPlasmaBloomFilter("0xb0208d37df54df90cfd7d4418f1f22cf64e02ae6024897fd7078eea9a4198d75")
+> plasma.getPlasmaBloomFilter("0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0")
 {
-  filter: "00000000000000000000000000000010..."}
-```
-
-* `getPlasmaBlock(uint)` - get Plasma BlockInfo by blockNumber. A Plasma block can be used to verify an incoming token transfer.
-```
-> plasma.getPlasmaBlock("0x2")
-{
-  accountRoot: "0x0daeb2dac72936f803418662070302684a2059f4027eb9cc01e0377550c546e1",
-  blockNumber: "0000000000000002",
-  bloomID: "0xda0f9b66e614309fead8740a3f318fd4864a09462753b0db8ae5004c7d7bfa68",
-  merkleRoot: "0xea88a855f552ebfbb717731c580b9b7270404dd3cfd10bd533006a41eadab564",
-  transactionRoot: "0x8915934f8e580fd81a5e8c2664a4d49e28463e06177bf6662ee866ef844d3290"
+    filter: "00000000000000000000000000000010..."
 }
-> plasma.getPlasmaBlock(0x1);
-> plasma.getPlasmaBlock(1);
 ```
 
-* `getPlasmaTransactionReceipt(hash)`  - get transaction Info {receipt, proof, token history} by txHash. The receipt can be used to check whether a transaction actually was successful.  The sender could send this back to the recipient, or the recipient could just call this to retrieve the proof.
+* `getPlasmaBlock(blockNumber uint64)` - get Plasma BlockInfo by blockNumber. Every Plasma block contains rootHash for each tries, which can be used to verify state transition and incoming token transfer. {`tokenRoot`, `accountRoot`, `l3ChainRoot`} are persisted roots that contain the latest full state, whereas {`transactionRoot`,`anchorRoot`} are built independently and sparse at every block. An empty SMT trie will have Root: `0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff` as level 64 DefaultHash.
+```
+> plasma.getPlasmaBlock("0x1")
+{
+    anchorRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
+    accountRoot: "0xea57cc53a6c26fd29dbaa385138f50d9030471222cf679fa88a7274a84870bbb",
+    blockNumber: "0000000000000001",
+    bloomID: "0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0",
+    l3ChainRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
+    parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
+    sig: "dec57c17b5eb1777683b168e9c600903b8c5354d9c5596aef3a07f8e1fda05b327a991a8015dcf87744d473aa09e37177b03f5632729fc37ea32cf3ec4cba26700",
+    tokenRoot: "0x3d3419dee60f8cc5a0130ed16b09561bdd41b6799245e26ffa43544269a4bebc",
+    transactionRoot: "0x5348248ba49f2802573cf7a942f24ab2cc330f0ec1e9113e121cd049833bbea5"
+}
+> plasma.getPlasmaBlock(2);
+similar as above
+```
+
+* `getPlasmaTransactionReceipt(txHash bytes32)`  - get transaction Info {receipt, proof, token history} by txHash. The receipt can be used to check whether a transaction actually was successful.  The sender could send this back to the recipient, or the recipient could just call this to retrieve the proof.
 ```
 > plasma.getPlasmaTransactionReceipt("0x5ed6c927c7c2d74e6a533eb642b1ebc2ed0992321918e8f0180634cf125674ed");
 {
-  blockNumber: 0,
-  receipt: 0
+    blockNumber: 0,
+    receipt: 0
 }
 ```
 
-## Token Transfer
 
+## Plasma Transaction
 When one node sends a Plasma token to another:
 
 1. The sender (who must have the full history of the token to-be-sent) submits a JSON RPC `sendPlasmaTransaction` request to a plasma node.  A plasma node relay such request to its peers via `BroadcastPlasmaTransaction`, one of whom is a leader and will run `MintPlasmaBlock` within a few seconds (e.g. after 3 seconds, or after 1000 transactions, whichever comes first). While the pending transaction sit in the transaction pool, tx hash is returned back to sender immediately. Furthermore, calling `getPlasmaTransactionReceipt` won't return anything until the tx is mined:
+
 ```
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, recipient: "0x3088666E05794d2498D9d98326c1b426c9950767", prevOwner: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0x55b3b7f32330082b76c2070393ae0735ce6e365f78611e9b0c3bbc100344a817"
-> plasma.getPlasmaToken("0x00000000000000000000000000000000000000000000000037b01bd3adfc4ef3")
+# PlasmaTransaction Type
 {
-  denomination: 1000000000000000000,
-  depositIndex: 1,
-  depositor: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
-  lastBlock: 2,
-  owner: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
-  prevBlock: 1,
-  tokenID: "37b01bd3adfc4ef3"
+    "tokenID": uint64,
+    "denomination": uint64,
+    "depositIndex": uint64,
+    "prevBlock": uint64,
+    "prevOwner": address(bytes20),
+    "recipient": address(bytes20),
+    "allowance": uint64,
+    "spent": uint64,
+    "balance": uint64,
+    "sig": bytes ([r,s,v], length 65)
 }
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, prevOwner: "0x3088666E05794d2498D9d98326c1b426c9950767", recipient: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0x0fea1b85ec1f95eccd4f25fbe8d5762175f9ec644d91aa0d9e8cef9d63f1272e"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, recipient: "0x3088666E05794d2498D9d98326c1b426c9950767", prevOwner: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0x2d16dfdced116f6726ead3ea06daba25850410e85dec7ceb1b6775507c454b26"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, prevOwner: "0x3088666E05794d2498D9d98326c1b426c9950767", recipient: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0xe2c5687d5c4ff148acda9e4ac5803707e0346b98583b2f236db6621719c90d5f"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, recipient: "0x3088666E05794d2498D9d98326c1b426c9950767", prevOwner: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0x30ad968f0ab70bd58008cede1162e3312b9be563c93270930d247a5487c99e94"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, prevOwner: "0x3088666E05794d2498D9d98326c1b426c9950767", recipient: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0xb7362f69aa2d1153ebcac0181929523ff01e1f1dcafb7af3c5c1f5582d037a81"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, recipient: "0x3088666E05794d2498D9d98326c1b426c9950767", prevOwner: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0x39972c6aa936c361d05d0417853cac758a3010ef373f7df4ac2c0f622df65d75"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, prevOwner: "0x3088666E05794d2498D9d98326c1b426c9950767", recipient: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0x0b757851d60523236df7c56ae578bc34d0f145cf1fb5bd43ea64a4f9af5d7bda"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, recipient: "0x3088666E05794d2498D9d98326c1b426c9950767", prevOwner: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0xad572d03f09851625b6ad5ac4baa06891a7c60860a046fd37c6b1bb15228bccd"
-> plasma.sendPlasmaTransaction({tokenId:0x37b01bd3adfc4ef3, prevOwner: "0x3088666E05794d2498D9d98326c1b426c9950767", recipient: "0x82Da88C31E874C678D529ad51E43De3A4BAF3914"});
-"0xbd8b8cc179857b757e4a8943676eadefd60bb560b62b8ece85fe692ae99292f2"
+
+Note: balance field is optional
+```
+
+```
+# Initiate a Plasma Transation on Layer 2
+>  plasma.sendPlasmaTransaction({"tokenID":0x37b01bd3adfc4ef3, "denomination": 1000000000000000000, "depositIndex": 1, "prevBlock": 1, "prevOwner": "0x82Da88C31E874C678D529ad51E43De3A4BAF3914", "recipient": "0x3088666E05794d2498D9d98326c1b426c9950767", "allowance": 100000000000000001, "spent": 200000000000000002, "sig": "0x51390d56baba5eb764df2595b0085009e3ba4ef4a909db1f6d44c36f8019277b3587d6058ce431b101ceeca96ee003fb61de1cd5ad22a73fb597823c6fbd7d9a01"});
+"0x705eb2ee11ff70ff13066427f5d3beb859e60fe63ecc7698264a82eb4430faa1" //txHash
+```
+```
+# PlasmaTransactionReceipt
+> plasma.getPlasmaTransactionReceipt("0x705eb2ee11ff70ff13066427f5d3beb859e60fe63ecc7698264a82eb4430faa1")
+{
+    blockNumber: 2,
+    receipt: 0
+}
+```
+```
+# getPlasmaToken from blocknumber #2
+> plasma.getPlasmaToken("0x37b01bd3adfc4ef3", 2)
+{
+    allowance: "0x16345785d8a0001",
+    balance: "0x9b6e64a8ec5fffd",
+    denomination: "0xde0b6b3a7640000",
+    owner: "0x3088666e05794d2498d9d98326c1b426c9950767",
+    prevBlock: 2,
+    spent: "0x2c68af0bb140002"
+}
+...
 ```
 
 2. When new Blocks are created (with Transactions referencing tokens, bloom filter) by the leader, it does a call to `submitBlock` on MainNet, but only _after_ it uses the `PlasmaChunkstore` abstraction to verifiably store at least:
@@ -202,3 +229,30 @@ When this happens, `getPlasmaTransactionReceipt` can return a full response with
  * download all Bloom filters, all the way back to the original deposit of the token
  * For false-positive case in Bloom filters or non-empty blocks, check for token history.
  * update its own Wallet
+
+## Anchor Transaction
+* `sendAnchorTransaction(AnchorTX)` - requires AnchorTransaction type as input. This function is called by Layers3 Chain operators to submit thier blockhashes to plasma nodes. AnchorTransactions can also be used to modify Layers3 chain permission by passing in non-empty extra.
+
+```
+# AnchorTransaction Type
+{
+    "blockchainID": uint64,
+    "blocknumber": uint64,
+    "blockhash": bytes32,
+    "extra":{"addedOwners": ["addr1", "addr2",...], "removedOwners": Array[Addr]},
+    "sig": bytes ([r,s,v], length 65)
+}
+
+WARNING: empty extra must be encoded as `RLP([[],[]])` or `c2c0c0` when there's no change for ownership
+```
+
+```
+# Creates layer3 blockchain  (AnchorTx with blocknumber #0)
+plasma.sendAnchorTransaction({"blockchainID":0xd9414b22221ce8f0, "blocknumber":0, "blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b", "sig":"0x66abbaf80f37c2afdd76ef1171ac8f09e6743723df5c5c3c0ca8fe05444b9da37dd94f2bc04c3d306435f754e354d31d180070e1eacbcc995cddeddf3236824200"})
+"0x7cd91117f0776582c3d58b0ef34d7c7b73c4229da60eb8a6326083f35836d01f"
+```
+```
+# Add/Remove owners from a  layer3 blockchain (AnchorTx with non-empty extradata)
+plasma.sendAnchorTransaction({"blockchainID":0xd9414b22221ce8f0, "blocknumber":1, "blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "extra":{"addedOwners":["0xba3e1663ada8f3e4e1574bab2494c727d7cb81aa"],"removedOwners":[]}, "sig":"0xa653573979fdf65e863a78e29faebf47eca3655687b81a57c8f0f87d3fb845f12b90bef31e02e2b6b399bde4093be5deb180cf85b8a1af98c488ce189d865bc001"})
+"0xe39906b15b115e62695736a45d355a97821e6190b4a682b561f20e086180bb60"
+```
