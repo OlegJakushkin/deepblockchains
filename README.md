@@ -15,7 +15,7 @@ Layers 2 and 3 utilize a Cloudstore abstraction to store and retrieve blocks and
 
 ## Layer 1: Root Chain Plasma Contract
 
-A feature complete smart contract is available at [PlasmaCash](https://github.com/wolkdb/deepblockchains/tree/master/Plasmacash) directory
+A feature-complete smart contract,  including the Plasma APIs documentation are now available at [PlasmaCash](https://github.com/wolkdb/deepblockchains/tree/master/Plasmacash) directory.
 
 ## Layer 2: Plasma Cash - POA
 
