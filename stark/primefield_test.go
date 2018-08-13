@@ -99,12 +99,12 @@ func TestPrimeField(t *testing.T) {
 	fmt.Printf("p: %v p(2) = 7\n", p)
 
 	// zpoly / eval_poly_at test
-	xs := []*big.Int{big.NewInt(4), big.NewInt(5), big.NewInt(6)}
+	xs := []*big.Int{FOUR, FIVE, SIX}
 	p = f.zpoly(xs)
 	fmt.Printf("p: %v\n", p)
 	for _, x := range xs {
 		q = f.eval_poly_at(p, x)
-		if q.Cmp(big.NewInt(0)) != 0 {
+		if q.Cmp(ZERO) != 0 {
 			t.Fatalf("zpoly problem\n")
 		}
 		fmt.Printf("p(%v) = %v\n", x, q)
@@ -112,9 +112,9 @@ func TestPrimeField(t *testing.T) {
 	fmt.Printf("\n\n")
 
 	//	a(x) = 5x^2 + 4x + 6, b = 2x + 1
-	a := []*big.Int{big.NewInt(6), big.NewInt(4), big.NewInt(5)}
-	b := []*big.Int{big.NewInt(1), big.NewInt(2)}
-	f.SetModulus(big.NewInt(7))
+	a := []*big.Int{SIX, FOUR, FIVE}
+	b := []*big.Int{ONE, TWO}
+	f.SetModulus(SEVEN)
 	p_div, _ := f.div_polys(a, b)
 
 	// test add_polys, sub_polys, mul_polys, div_polys, mul_by_const

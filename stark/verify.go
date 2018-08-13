@@ -6,11 +6,8 @@ import (
 	"math/big"
 	"sync"
 	"time"
-
-	"github.com/ethereum/go-ethereum/common"
 )
 
-//VerifyProof(f, INPUT, two_logsteps, constants, &prf)
 // Verifies a STARK, using verify_low_degree_proof for each component in the STARK proof
 func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*big.Int, proof *Proof) error {
 	// Verifies the low-degree proofs
@@ -30,7 +27,7 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 	precision := new(big.Int).Mul(steps, ext_factor)
 
 	// Get (steps)th root of unity
-	G2 := f.pow(big.NewInt(7), f.div(new(big.Int).Sub(f.modulus, big.NewInt(1)), precision))
+	G2 := f.pow(SEVEN, f.div(new(big.Int).Sub(f.modulus, ONE), precision))
 	skips := f.div(precision, steps)
 	errV := verify_low_degree_proof(f, l_root, G2, proof.Child, int(steps.Int64()*2), ext_factor)
 	if errV != nil {
@@ -49,26 +46,22 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 	k2 := blake(append(m_root, byte(2)))
 	k3 := blake(append(m_root, byte(3)))
 	k4 := blake(append(m_root, byte(4)))
-
 	positions, err := get_pseudorandom_indices(f, l_root, precision, spot_check_security_factor, int64(extension_factor))
 	if err != nil {
 		return err
 	}
-	t := new(big.Int).Sub(steps, big.NewInt(1))
+	t := new(big.Int).Sub(steps, ONE)
 	t.Mul(t, skips)
 	last_step_position := f.pow(G2, t)
 
 	nev := len(positions)
-	njmp := nev / 8
-	if njmp < 8 {
-		njmp = 8
-	}
-	njmp = 5
+	njmp := min_iterations(nev, -1)
 
 	// Wait for output from f.MiMC
 	wg.Wait()
 	var finalErr error
 	finalErr = nil
+
 	for j := 0; j < nev; j += njmp {
 		wg.Add(1)
 		go func(i0 int, i1 int) {
@@ -80,11 +73,7 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 			s1 := new(big.Int)
 			s2 := new(big.Int)
 			s3 := new(big.Int)
-			z := big.NewInt(0)
-			one := big.NewInt(1)
-			negone := big.NewInt(-1)
-			THREE := big.NewInt(3)
-			p_of_x := new(big.Int) // common.BytesToHash(mbranch1[:32]).Big()
+			p_of_x := new(big.Int)
 			p_of_g1x := new(big.Int)
 			d_of_x := new(big.Int)
 			b_of_x := new(big.Int)
@@ -121,27 +110,25 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 				s3.Exp(p_of_x, THREE, nil)
 				s0.Sub(p_of_g1x, s3)
 				s1.Sub(s0, f.eval_poly_at(constants_mini_polynomial, f.pow(x, skips2)))
-				s0.Mul(f.div(f.sub(f.pow(x, steps), one), f.sub(x, last_step_position)), d_of_x)
+				s0.Mul(f.div(f.sub(f.pow(x, steps), ONE), f.sub(x, last_step_position)), d_of_x)
 				s2.Sub(s1, s0)
-				s3.Mod(s2, f.modulus)
-				if s3.Cmp(z) != 0 {
+				if s3.Mod(s2, f.modulus).Cmp(ZERO) != 0 {
 					finalErr = fmt.Errorf("transition constraint violation")
 				}
 
 				// Check boundary constraints B(x) * Q(x) + I(x) = P(x)
-				interpolant := f.lagrange_interp_2(create_poly2(one, last_step_position), create_poly2(inp, output))
-				zeropoly2 := f.mul_polys(create_poly2(negone, one), create_poly2(new(big.Int).Mul(negone, last_step_position), one))
+				interpolant := f.lagrange_interp_2(create_poly2(ONE, last_step_position), create_poly2(inp, output))
+				zeropoly2 := f.mul_polys(create_poly2(NEGONE, ONE), create_poly2(new(big.Int).Mul(NEGONE, last_step_position), ONE))
 				// Check if (p_of_x - b_of_x * f.eval_poly_at(zeropoly2, x) - f.eval_poly_at(interpolant, x)) % modulus == 0
 				s3.Mul(b_of_x, f.eval_poly_at(zeropoly2, x))
 				s0.Sub(p_of_x, s3)
 				s1.Sub(s0, f.eval_poly_at(interpolant, x))
-				s2.Mod(s1, f.modulus)
-				if s2.Cmp(z) != 0 {
+				if s2.Mod(s1, f.modulus).Cmp(ZERO) != 0 {
 					finalErr = fmt.Errorf("boundary constraint violation")
 				}
 				// Check correctness of the linear combination
 				// Check if (l_of_x - d_of_x - k1 * p_of_x - k2 * p_of_x * x_to_the_steps - k3 * b_of_x - k4 * b_of_x * x_to_the_steps) % modulus == 0
-				s0.Sub(common.BytesToHash(l_of_x).Big(), d_of_x)
+				s0.Sub(BytesToBig(l_of_x), d_of_x)
 				s3.Mul(k1, p_of_x)
 				s1.Sub(s0, s3)
 				s2.Mul(p_of_x, x_to_the_steps)
@@ -153,7 +140,7 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 				s3.Mul(k4, s2)
 				s1.Sub(s0, s3)
 				s2.Mod(s1, f.modulus)
-				if s2.Cmp(z) != 0 {
+				if s2.Cmp(ZERO) != 0 {
 					finalErr = fmt.Errorf("linear combination violation")
 				}
 			}
@@ -173,9 +160,9 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 	// Calculate which root of unity we're working with
 	start := time.Now()
 	testval := new(big.Int).Set(root_of_unity)
-	roudeg := big.NewInt(1)
-	for testval.Cmp(big.NewInt(1)) != 0 {
-		roudeg.Mul(roudeg, big.NewInt(2))
+	roudeg := new(big.Int).Set(ONE)
+	for testval.Cmp(ONE) != 0 {
+		roudeg.Mul(roudeg, TWO)
 		// testval = (testval * testval) % modulus
 		testval.Mul(testval, testval)
 		testval.Mod(testval, f.modulus)
@@ -183,11 +170,11 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 
 	// Powers of the given root of unity 1, p, p**2, p**3 such that p**4 = 1
 	quartic_roots_of_unity := make([]*big.Int, 4)
-	quartic_roots_of_unity[0] = big.NewInt(1)
-	quartic_roots_of_unity[1] = f.pow(root_of_unity, new(big.Int).Div(roudeg, big.NewInt(4)))
-	quartic_roots_of_unity[2] = f.pow(root_of_unity, new(big.Int).Div(roudeg, big.NewInt(2)))
-	t := new(big.Int).Mul(roudeg, big.NewInt(3))
-	t.Div(t, big.NewInt(4))
+	quartic_roots_of_unity[0] = new(big.Int).Set(ONE)
+	quartic_roots_of_unity[1] = f.pow(root_of_unity, new(big.Int).Div(roudeg, FOUR))
+	quartic_roots_of_unity[2] = f.pow(root_of_unity, new(big.Int).Div(roudeg, TWO))
+	t := new(big.Int).Mul(roudeg, THREE)
+	t.Div(t, FOUR)
 	quartic_roots_of_unity[3] = f.pow(root_of_unity, t)
 	if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
 
@@ -207,7 +194,7 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 			special_x.Mod(special_x, f.modulus)
 
 			// Calculate the pseudo-randomly sampled y indices
-			modulus := new(big.Int).Div(roudeg, big.NewInt(4))
+			modulus := new(big.Int).Div(roudeg, FOUR)
 			ys, err := get_pseudorandom_indices(f, root2, modulus, 40, exclude_multiples_of.Int64())
 			if err != nil {
 				fmt.Printf("Failure get_pseudorandom_indices \n")
@@ -218,14 +205,14 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 			xcoords := make([][]*big.Int, 0)
 			rows := make([][]*big.Int, 0)
 			columnvals := make([]*big.Int, 0)
+			t := new(big.Int)
 			for i, y := range ys {
 				// The x coordinates from the polynomial
 				x1 := f.pow(root_of_unity, y)
 				a := make([]*big.Int, 4)
 				for j := 0; j < 4; j++ {
-					t := new(big.Int).Mul(quartic_roots_of_unity[j], x1)
-					t.Mod(t, f.modulus)
-					a[j] = t
+					t.Mul(quartic_roots_of_unity[j], x1)
+					a[j] = new(big.Int).Mod(t, f.modulus)
 				}
 				xcoords = append(xcoords, a)
 
@@ -252,14 +239,11 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 				}
 				columnvals = append(columnvals, c)
 			}
-			//			fmt.Printf("   [phase 1-%d %s]\n", level, time.Since(start))
 
 			// Verify for each selected y coordinate that the four points from the
 			// polynomial and the one point from the column that are on that y
 			// coordinate are on the same deg < 4 polynomial
 			polys := f.multi_interp_4(xcoords, rows)
-			//		fmt.Printf("   [phase 2-%d multi_interp_4: %s]\n", level, time.Since(start))
-
 			for j, p := range polys {
 				c := columnvals[j]
 				q := f.eval_quartic(p, special_x)
@@ -276,9 +260,9 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 		// Update constants to check the next proof
 		start = time.Now()
 		merkle_root = component.Root
-		root_of_unity = f.pow(root_of_unity, big.NewInt(4))
+		root_of_unity = f.pow(root_of_unity, FOUR)
 		maxdeg_plus_1 = maxdeg_plus_1 / 4
-		roudeg = f.div(roudeg, big.NewInt(4))
+		roudeg = f.div(roudeg, FOUR)
 	}
 
 	// Verify the direct components of the proof
@@ -289,7 +273,6 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 			errc <- fmt.Errorf("max_degreeplus_1 too high")
 			return
 		}
-		fmt.Printf("Verifying degree <= %d\n", maxdeg_plus_1)
 		// Check the Merkle root matches up
 		mtree := merkelize(comp.Values)
 		if bytes.Compare(mtree[1], merkle_root) != 0 {
@@ -300,11 +283,10 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 		// Check the degree of the data
 		powers := get_power_cycle(root_of_unity, f.modulus)
 		pts := make([]int64, 0)
-		if exclude_multiples_of.Cmp(big.NewInt(0)) > 0 {
+		if exclude_multiples_of.Cmp(ZERO) > 0 {
+			t := new(big.Int)
 			for i := int64(0); i < int64(len(comp.Values)); i++ {
-				x := big.NewInt(i)
-				x.Mod(x, exclude_multiples_of)
-				if x.Cmp(big.NewInt(0)) > 0 {
+				if t.Mod(big.NewInt(i), exclude_multiples_of).Cmp(ZERO) > 0 {
 					pts = append(pts, i)
 				}
 			}
@@ -319,19 +301,19 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 		ys := make([]*big.Int, 0)
 		for _, x := range pts[:maxdeg_plus_1] {
 			xs = append(xs, powers[x])
-			ys = append(ys, common.BytesToHash(comp.Values[x]).Big())
+			ys = append(ys, BytesToBig(comp.Values[x]))
 		}
 
 		poly := f.lagrange_interp(xs, ys)
 		for _, x := range pts[maxdeg_plus_1:] {
 			q := f.eval_poly_at(poly, powers[x])
-			y := common.BytesToHash(comp.Values[x]).Big()
+			y := BytesToBig(comp.Values[x])
 			if q.Cmp(y) != 0 {
 				fmt.Printf("Lagrange mismatch Failure\n")
 				errc <- fmt.Errorf("Lagrange mismatch")
 			}
 		}
-		fmt.Printf("   [level 5 %s]\n", time.Since(start))
+		fmt.Printf("Verifying degree <= %d [%s]\n", maxdeg_plus_1, time.Since(start))
 		errc <- nil
 	}(comp)
 

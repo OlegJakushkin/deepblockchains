@@ -7,6 +7,21 @@ import (
 	"time"
 )
 
+var (
+	ZERO        = big.NewInt(0)
+	NEGONE      = big.NewInt(-1)
+	ONE         = big.NewInt(1)
+	TWO         = big.NewInt(2)
+	THREE       = big.NewInt(3)
+	FOUR        = big.NewInt(4)
+	FIVE        = big.NewInt(5)
+	SIX         = big.NewInt(6)
+	SEVEN       = big.NewInt(7)
+	TWENTYFOUR  = big.NewInt(24)
+	THIRTYTWO   = big.NewInt(32)
+	TWOFIFTYSIX = big.NewInt(256)
+)
+
 // Creates an object that includes convenience operations for numbers and polynomials in some prime field
 type PrimeField struct {
 	modulus *big.Int
@@ -23,27 +38,24 @@ func (self *PrimeField) SetModulus(_modulus *big.Int) {
 		modulus := new(big.Int)
 		two_to_256 := new(big.Int)
 		two_to_32_times_351 := new(big.Int)
-		c := modulus.Mul(two_to_32_times_351.Exp(big.NewInt(2), big.NewInt(32), nil), big.NewInt(351))
-		modulus.Sub(two_to_256.Exp(big.NewInt(2), big.NewInt(256), nil), c)
-		self.modulus = modulus.Add(modulus, big.NewInt(1))
+		c := modulus.Mul(two_to_32_times_351.Exp(TWO, THIRTYTWO, nil), big.NewInt(351))
+		modulus.Sub(two_to_256.Exp(TWO, TWOFIFTYSIX, nil), c)
+		self.modulus = modulus.Add(modulus, ONE)
 	} else {
 		self.modulus = _modulus
 	}
 }
 
 func (self *PrimeField) add(x, y *big.Int) (o *big.Int) {
-	o = new(big.Int).Add(x, y)
-	return new(big.Int).Mod(o, self.modulus)
+	return new(big.Int).Mod(new(big.Int).Add(x, y), self.modulus)
 }
 
 func (self *PrimeField) sub(x, y *big.Int) (o *big.Int) {
-	o = new(big.Int).Sub(x, y)
-	return new(big.Int).Mod(o, self.modulus)
+	return new(big.Int).Mod(new(big.Int).Sub(x, y), self.modulus)
 }
 
 func (self *PrimeField) mul(x, y *big.Int) (o *big.Int) {
-	o = new(big.Int).Mul(x, y)
-	return new(big.Int).Mod(o, self.modulus)
+	return new(big.Int).Mod(new(big.Int).Mul(x, y), self.modulus)
 }
 
 func (self *PrimeField) div(x, y *big.Int) *big.Int {
@@ -51,33 +63,27 @@ func (self *PrimeField) div(x, y *big.Int) *big.Int {
 }
 
 func (self *PrimeField) pow(x, y *big.Int) (o *big.Int) {
-	o = new(big.Int).Exp(x, y, self.modulus)
-	return o
+	return new(big.Int).Exp(x, y, self.modulus)
 }
 
 // Modular inverse using the extended Euclidean algorithm
 func (self *PrimeField) inv(a *big.Int) *big.Int {
-	zero := big.NewInt(0)
-	one := big.NewInt(1)
-	if a.Cmp(zero) == 0 {
-		return zero
+	if a.Cmp(ZERO) == 0 {
+		return ZERO
 	}
-	lm := big.NewInt(1)
-	hm := big.NewInt(0)
+	lm := new(big.Int).Set(ONE)
+	hm := new(big.Int)
 
 	low := a.Mod(a, self.modulus)
 	high := self.modulus
-	for low.Cmp(one) > 0 {
-		r := new(big.Int).Div(high, low)
-
+	t := new(big.Int)
+	r := new(big.Int)
+	for low.Cmp(ONE) > 0 {
+		r.Div(high, low)
 		// nm = hm-lm*r
-		t := new(big.Int)
 		nm := new(big.Int).Sub(hm, t.Mul(lm, r))
-
 		// nw = high - low*r
-		t.Mul(low, r)
-		nw := new(big.Int).Sub(high, t)
-
+		nw := new(big.Int).Sub(high, t.Mul(low, r))
 		lm, low, hm, high = nm, nw, lm, low
 	}
 	return hm.Mod(lm, self.modulus)
@@ -85,11 +91,11 @@ func (self *PrimeField) inv(a *big.Int) *big.Int {
 
 func (self *PrimeField) multi_inv(values []*big.Int) []*big.Int {
 	partials := make([]*big.Int, 1+len(values))
-	partials[0] = big.NewInt(1)
+	partials[0] = new(big.Int).Set(ONE)
 	outputs := make([]*big.Int, len(values))
-	z := big.NewInt(0)
+
 	for i := 0; i < len(values); i++ {
-		if values[i].Cmp(z) == 0 {
+		if values[i].Cmp(ZERO) == 0 {
 			partials[i+1] = partials[i]
 		} else {
 			partials[i+1] = self.mul(partials[i], values[i])
@@ -97,8 +103,8 @@ func (self *PrimeField) multi_inv(values []*big.Int) []*big.Int {
 	}
 	inv := self.inv(partials[len(partials)-1])
 	for i := len(values) - 1; i >= 0; i = i - 1 {
-		if values[i].Cmp(z) == 0 {
-			outputs[i] = big.NewInt(0)
+		if values[i].Cmp(ZERO) == 0 {
+			outputs[i] = new(big.Int)
 		} else {
 			outputs[i] = self.mul(partials[i], inv)
 			inv = self.mul(inv, values[i])
@@ -109,15 +115,13 @@ func (self *PrimeField) multi_inv(values []*big.Int) []*big.Int {
 
 // Evaluate a polynomial at a point
 func (self *PrimeField) eval_poly_at(poly []*big.Int, x *big.Int) *big.Int {
-	o := big.NewInt(0)
-	p := big.NewInt(1)
+	o := new(big.Int)
+	p := new(big.Int).Set(ONE)
 	t1 := new(big.Int)
 	t0 := new(big.Int)
 	for _, coeff := range poly {
-		t1.Mul(p, coeff)
-		o.Add(o, t1)
-		t0.Mul(p, x)
-		p.Mod(t0, self.modulus)
+		o.Add(o, t1.Mul(p, coeff))
+		p.Mod(t0.Mul(p, x), self.modulus)
 	}
 	return t0.Mod(o, self.modulus)
 }
@@ -129,18 +133,17 @@ func (self *PrimeField) add_polys(a, b []*big.Int) []*big.Int {
 		l = len(b)
 	}
 	o := make([]*big.Int, 0)
+	t := new(big.Int)
 	for i := 0; i < l; i++ {
-		av := big.NewInt(0)
-		bv := big.NewInt(0)
+		av := new(big.Int)
+		bv := new(big.Int)
 		if i < len(a) {
 			av = a[i]
 		}
 		if i < len(b) {
 			bv = b[i]
 		}
-		t := new(big.Int)
-		t.Add(av, bv)
-		o = append(o, t.Mod(t, self.modulus))
+		o = append(o, new(big.Int).Mod(t.Add(av, bv), self.modulus))
 	}
 	return o
 }
@@ -152,8 +155,8 @@ func (self *PrimeField) sub_polys(a, b []*big.Int) []*big.Int {
 	}
 	o := make([]*big.Int, 0)
 	for i := 0; i < l; i++ {
-		av := big.NewInt(0)
-		bv := big.NewInt(0)
+		av := new(big.Int)
+		bv := new(big.Int)
 		if i < len(a) {
 			av = a[i]
 		}
@@ -169,10 +172,9 @@ func (self *PrimeField) sub_polys(a, b []*big.Int) []*big.Int {
 
 func (self *PrimeField) mul_by_const(a []*big.Int, c *big.Int) []*big.Int {
 	o := make([]*big.Int, 0)
+	t := new(big.Int)
 	for i := 0; i < len(a); i++ {
-		t := new(big.Int)
-		t.Mul(a[i], c)
-		o = append(o, t.Mod(t, self.modulus))
+		o = append(o, new(big.Int).Mod(t.Mul(a[i], c), self.modulus))
 	}
 	return o
 }
@@ -180,7 +182,7 @@ func (self *PrimeField) mul_by_const(a []*big.Int, c *big.Int) []*big.Int {
 func (self *PrimeField) mul_polys(a []*big.Int, b []*big.Int) []*big.Int {
 	o := make([]*big.Int, len(a)+len(b)-1)
 	for i := 0; i < len(a)+len(b)-1; i++ {
-		o[i] = big.NewInt(0)
+		o[i] = new(big.Int)
 	}
 	for i, aval := range a {
 		for j, bval := range b {
@@ -225,10 +227,10 @@ func (self *PrimeField) div_polys(a []*big.Int, b []*big.Int) (o []*big.Int, err
 // Build a polynomial that returns 0 at all specified xs
 func (self *PrimeField) zpoly(xs []*big.Int) []*big.Int {
 	root := make([]*big.Int, 0)
-	root = append(root, big.NewInt(1))
+	root = append(root, ONE)
 	t := new(big.Int)
 	for _, x := range xs {
-		root = append([]*big.Int{big.NewInt(0)}, root...)
+		root = append([]*big.Int{new(big.Int)}, root...)
 		for j := 0; j < len(root)-1; j++ {
 			root[j].Sub(root[j], t.Mul(root[j+1], x))
 		}
@@ -258,11 +260,9 @@ func (self *PrimeField) lagrange_interp(xs, ys []*big.Int) []*big.Int {
 
 	// nums = [self.div_polys(root, [-x, 1]) for x in xs]
 	nums := make([][]*big.Int, len(xs))
-	one := big.NewInt(1)
 	negx := new(big.Int)
 	for i, x := range xs {
-		negx.Neg(x)
-		nums[i], _ = self.div_polys(root, []*big.Int{negx, one})
+		nums[i], _ = self.div_polys(root, []*big.Int{negx.Neg(x), ONE})
 	}
 
 	// Generate denominators by evaluating numerator polys at each x
@@ -276,13 +276,14 @@ func (self *PrimeField) lagrange_interp(xs, ys []*big.Int) []*big.Int {
 	// Generate output polynomial, which is the sum of the per-value numerator polynomials rescaled to have the right y values
 	b := make([]*big.Int, len(ys))
 	for i := 0; i < len(ys); i++ {
-		b[i] = big.NewInt(0)
+		b[i] = new(big.Int)
 	}
+	t := new(big.Int)
 	for i := 0; i < len(xs); i++ {
 		yslice := self.mul(ys[i], invdenoms[i])
 		for j := 0; j < len(ys); j++ {
 			if i < len(ys) && j < len(nums[i]) {
-				t := new(big.Int).Mul(nums[i][j], yslice)
+				t.Mul(nums[i][j], yslice)
 				b[j].Add(b[j], t)
 			}
 		}
@@ -308,39 +309,28 @@ func (self *PrimeField) lagrange_interp_2(xs, ys []*big.Int) []*big.Int {
 	t0 := new(big.Int)
 	t1 := new(big.Int)
 	t2 := new(big.Int)
-	one := big.NewInt(1)
+
 	// eq0 = [-xs[1] % m, 1]
-	t1.Neg(xs[1])
-	t2.Mod(t1, m)
-	eq0 := create_poly2(t2, one)
+	eq0 := create_poly2(t2.Mod(t1.Neg(xs[1]), m), ONE)
 	e0 := self.eval_poly_at(eq0, xs[0])
 
 	// eq1 = [-xs[0] % m, 1]
-	t0.Neg(xs[0])
-	t1.Mod(t0, m)
-	eq1 := create_poly2(t1, one)
+	eq1 := create_poly2(t1.Mod(t0.Neg(xs[0]), m), ONE)
 	e1 := self.eval_poly_at(eq1, xs[1])
 
 	// invall = self.inv(e0 * e1)
-	invall := self.inv(new(big.Int).Mul(e0, e1))
+	invall := self.inv(t0.Mul(e0, e1))
 
 	// inv_y0 = ys[0] * invall * e1
-	inv_y0 := new(big.Int)
-	t0.Mul(ys[0], invall)
-	inv_y0.Mul(t0, e1)
+	inv_y0 := new(big.Int).Mul(t0.Mul(ys[0], invall), e1)
 
 	// inv_y1 = ys[1] * invall * e0
-	inv_y1 := new(big.Int)
-	t0.Mul(ys[1], invall)
-	inv_y1.Mul(t0, e0)
+	inv_y1 := new(big.Int).Mul(t0.Mul(ys[1], invall), e0)
 
 	// [(eq0[i] * inv_y0 + eq1[i] * inv_y1) % m for i in range(2)]
 	o := make([]*big.Int, 2)
 	for i := 0; i < 2; i++ {
-		t0.Mul(eq0[i], inv_y0)
-		t1.Mul(eq1[i], inv_y1)
-		t2.Add(t0, t1)
-		o[i] = new(big.Int).Mod(t2, m)
+		o[i] = new(big.Int).Mod(t2.Add(t0.Mul(eq0[i], inv_y0), t1.Mul(eq1[i], inv_y1)), m)
 	}
 	return o
 }
@@ -348,16 +338,11 @@ func (self *PrimeField) lagrange_interp_2(xs, ys []*big.Int) []*big.Int {
 // Optimized poly evaluation for degree 4
 func (self *PrimeField) eval_quartic(p []*big.Int, x *big.Int) *big.Int {
 	xsq := new(big.Int).Mul(x, x)
-	xsq.Mod(xsq, self.modulus)
 	xcb := new(big.Int).Mul(xsq, x)
-
-	o3 := new(big.Int).Mul(p[3], xcb)
-	o2 := new(big.Int).Mul(p[2], xsq)
-	o1 := new(big.Int).Mul(p[1], x)
-	o := new(big.Int).Add(p[0], o1)
-	o1.Add(o3, o2)
-	xcb.Add(o, o1)
-	return o.Mod(xcb, self.modulus)
+	t3 := new(big.Int)
+	xsq.Add(t3.Mul(p[3], xcb), new(big.Int).Mul(p[2], xsq))
+	xcb.Add(new(big.Int).Add(p[0], t3.Mul(p[1], x)), xsq)
+	return xcb.Mod(xcb, self.modulus)
 }
 
 // Optimized version of the above restricted to deg-4 polynomials
@@ -372,51 +357,26 @@ func (self *PrimeField) lagrange_interp_4(xs, ys []*big.Int) []*big.Int {
 	m := self.modulus
 	t3 := new(big.Int)
 	t2 := new(big.Int)
+	t1 := new(big.Int)
 	t0 := new(big.Int)
 	s3 := new(big.Int)
 	s2 := new(big.Int)
 	negxs0 := new(big.Int).Neg(xs[0])
+	negxs1 := new(big.Int).Neg(xs[1])
 	negxs2 := new(big.Int).Neg(xs[2])
 	negxs3 := new(big.Int).Neg(xs[3])
-	one := big.NewInt(1)
 
 	//eq0 := create_poly4(-x12*xs[3]%m, (x12 + x13 + x23), -xs[1]-xs[2]-xs[3], 1)
-	s3.Mul(x12, negxs3)
-	t3.Mod(s3, m)
-	s3.Add(x12, x13)
-	t2.Add(s3, x23)
-	t1 := s3.Neg(xs[1])
-	s2.Sub(t3, xs[2])
-	t1.Sub(s2, xs[3])
-	eq0 := create_poly4(t3, t2, t1, one)
+	eq0 := create_poly4(new(big.Int).Mod(t3.Mul(x12, negxs3), m), new(big.Int).Add(t2.Add(x12, x13), x23), new(big.Int).Sub(negxs1, t0.Add(xs[3], xs[2])), ONE)
 
 	//eq1 := create_poly4(-x02*xs[3]%m, (x02 + x03 + x23), -xs[0]-xs[2]-xs[3], 1)
-	s3.Mul(x02, negxs3)
-	t3.Mod(s3, m)
-	t2.Add(x02, x03)
-	t2.Add(t2, x23)
-	s3.Sub(negxs0, xs[2])
-	t1.Sub(s3, xs[3])
-	eq1 := create_poly4(t3, t2, t1, one)
+	eq1 := create_poly4(new(big.Int).Mod(t3.Mul(x02, negxs3), m), new(big.Int).Add(t2.Add(x02, x03), x23), new(big.Int).Sub(t1.Sub(negxs0, xs[2]), xs[3]), ONE)
 
 	//eq2 := create_poly4(-x01*xs[3]%m, (x01 + x03 + x13), -xs[0]-xs[1]-xs[3], 1)
-	t3 = new(big.Int).Mul(x01, negxs3)
-	t3.Mod(t3, m)
-	t2 = new(big.Int).Set(x01)
-	t2.Add(t2, x03)
-	t2.Add(t2, x13)
-	t1.Sub(negxs0, xs[1])
-	t1.Sub(t1, xs[3])
-	eq2 := create_poly4(t3, t2, t1, one)
+	eq2 := create_poly4(new(big.Int).Mod(t3.Mul(x01, negxs3), m), new(big.Int).Add(t2.Add(x01, x03), x13), new(big.Int).Sub(negxs0, t1.Add(xs[1], xs[3])), ONE)
 
 	//eq3 := create_poly4(-x01*xs[2]%m, (x01 + x02 + x12), -xs[0]-xs[1]-xs[2], 1)
-	t3.Mul(x01, negxs2)
-	t3.Mod(t3, m)
-	s3.Add(x01, x02)
-	t2.Add(s3, x12)
-	s3.Sub(negxs0, xs[1])
-	t1.Sub(t3, xs[2])
-	eq3 := create_poly4(t3, t2, t1, one)
+	eq3 := create_poly4(new(big.Int).Mod(t3.Mul(x01, negxs2), m), new(big.Int).Add(t2.Add(x01, x02), x12), new(big.Int).Sub(negxs0, t1.Add(xs[1], xs[2])), ONE)
 
 	e0 := self.eval_poly_at(eq0, xs[0])
 	e1 := self.eval_poly_at(eq1, xs[1])
@@ -424,42 +384,24 @@ func (self *PrimeField) lagrange_interp_4(xs, ys []*big.Int) []*big.Int {
 	e3 := self.eval_poly_at(eq3, xs[3])
 	e01 := new(big.Int).Mul(e0, e1)
 	e23 := new(big.Int).Mul(e2, e3)
-	invall := self.inv(new(big.Int).Mul(e01, e23))
+	invall := self.inv(t0.Mul(e01, e23))
 
 	// inv_y0 := ys[0] * invall * e1 * e23 % m
-	inv_y0 := new(big.Int).Mul(ys[0], invall)
-	s3.Mul(inv_y0, e1)
-	s2.Mul(s3, e23)
-	inv_y0.Mod(s2, m)
+	inv_y0 := new(big.Int).Mod(t2.Mul(t0.Mul(ys[0], invall), t1.Mul(e1, e23)), m)
 
 	// inv_y1 := ys[1] * invall * e0 * e23 % m
-	inv_y1 := new(big.Int).Mul(ys[1], invall)
-	s3.Mul(inv_y1, e0)
-	s2.Mul(s3, e23)
-	inv_y1.Mod(s2, m)
+	inv_y1 := new(big.Int).Mod(t2.Mul(t0.Mul(ys[1], invall), t1.Mul(e0, e23)), m)
 
 	// inv_y2 := ys[2] * invall * e01 * e3 % m
-	inv_y2 := new(big.Int).Mul(ys[2], invall)
-	s3.Mul(inv_y2, e01)
-	s2.Mul(s3, e3)
-	inv_y2.Mod(s2, m)
+	inv_y2 := new(big.Int).Mod(t2.Mul(t0.Mul(ys[2], invall), t1.Mul(e01, e3)), m)
 
 	// inv_y3 := ys[3] * invall * e01 * e2 % m
-	inv_y3 := new(big.Int).Mul(ys[3], invall)
-	s3.Mul(inv_y3, e01)
-	s2.Mul(s3, e2)
-	inv_y3.Mod(s2, m)
+	inv_y3 := new(big.Int).Mod(t2.Mul(t0.Mul(ys[3], invall), t1.Mul(e01, e2)), m)
 
 	o := make([]*big.Int, 4)
 	for i := 0; i < 4; i++ {
 		// [(eq0[i] * inv_y0 + eq1[i] * inv_y1 + eq2[i] * inv_y2 + eq3[i] * inv_y3) % m for i in range(4)]
-		t0.Mul(eq0[i], inv_y0)
-		t1.Mul(eq1[i], inv_y1)
-		t2.Mul(eq2[i], inv_y2)
-		t3.Mul(eq3[i], inv_y3)
-		s2.Add(t0, t1)
-		s3.Add(t2, t3)
-		t3.Add(s2, s3)
+		t3.Add(s2.Add(t0.Mul(eq0[i], inv_y0), t1.Mul(eq1[i], inv_y1)), s3.Add(t2.Mul(eq2[i], inv_y2), t3.Mul(eq3[i], inv_y3)))
 		o[i] = new(big.Int).Mod(t3, m)
 	}
 	return o
@@ -469,11 +411,11 @@ func (self *PrimeField) _simple_ft(vals []*big.Int, roots_of_unity []*big.Int) [
 	L := len(roots_of_unity)
 	o := make([]*big.Int, L)
 	for i := 0; i < L; i++ {
-		o[i] = big.NewInt(0)
+		o[i] = new(big.Int)
 	}
 
 	for i := 0; i < L; i++ {
-		last := big.NewInt(0)
+		last := new(big.Int)
 		for j := 0; j < L; j++ {
 			t := new(big.Int).Mul(vals[j], roots_of_unity[(i*j)%L])
 			o[i].Add(o[i], t)
@@ -501,7 +443,7 @@ func (self *PrimeField) _fft(vals []*big.Int, roots_of_unity []*big.Int) []*big.
 
 	var L []*big.Int
 	var R []*big.Int
-	if len(vals) > 1024 {
+	if len(vals) >= 1024 {
 		var wg sync.WaitGroup
 		y_times_root := make([]*big.Int, vals_div2)
 		wg.Add(1)
@@ -564,10 +506,8 @@ func (self *PrimeField) _fft(vals []*big.Int, roots_of_unity []*big.Int) []*big.
 		t2 := new(big.Int)
 		for i, x := range L {
 			y_times_root.Mul(R[i], roots_of_unity[i])
-			t1.Add(x, y_times_root)
-			o[i] = new(big.Int).Mod(t1, self.modulus)
-			t2.Sub(x, y_times_root)
-			o[i+len(L)] = new(big.Int).Mod(t2, self.modulus)
+			o[i] = new(big.Int).Mod(t1.Add(x, y_times_root), self.modulus)
+			o[i+len(L)] = new(big.Int).Mod(t2.Sub(x, y_times_root), self.modulus)
 		}
 	}
 	return o
@@ -577,11 +517,11 @@ func (self *PrimeField) fft(vals []*big.Int, root_of_unity *big.Int, inv bool) [
 	// Build up roots of unity
 	start := time.Now()
 	rootz := make([]*big.Int, 2)
-	rootz[0] = big.NewInt(1)
+	rootz[0] = new(big.Int).Set(ONE)
 	rootz[1] = root_of_unity
-	one := big.NewInt(1)
+
 	i := 1
-	for rootz[i].Cmp(one) != 0 {
+	for rootz[i].Cmp(ONE) != 0 {
 		t := new(big.Int).Mul(rootz[i], root_of_unity)
 		rootz = append(rootz, t.Mod(t, self.modulus))
 		i = i + 1
@@ -591,17 +531,17 @@ func (self *PrimeField) fft(vals []*big.Int, root_of_unity *big.Int, inv bool) [
 	if len(rootz) > len(vals)+1 {
 		extrazeros := make([]*big.Int, (len(rootz) - len(vals) - 1))
 		for i := 0; i < len(extrazeros); i++ {
-			extrazeros[i] = big.NewInt(0)
+			extrazeros[i] = new(big.Int)
 		}
 		vals = append(vals, extrazeros...)
 	}
 	if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-		fmt.Printf("    fft setup [%s]\n", time.Since(start))
+		//	fmt.Printf("    fft setup [%s]\n", time.Since(start))
 	}
 	if inv {
 		// Inverse FFT
 		start = time.Now()
-		t := new(big.Int).Sub(self.modulus, big.NewInt(2))
+		t := new(big.Int).Sub(self.modulus, TWO)
 		invlen := new(big.Int).Exp(big.NewInt(int64(len(vals))), t, self.modulus)
 		irootz := make([]*big.Int, 0)
 		for i := len(rootz) - 1; i > 0; i-- {
@@ -613,17 +553,17 @@ func (self *PrimeField) fft(vals []*big.Int, root_of_unity *big.Int, inv bool) [
 		start = time.Now()
 		res := self._fft(vals, irootz)
 		if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-			fmt.Printf("    inv_fft core [%s]\n", time.Since(start))
+			//	fmt.Printf("    inv_fft core [%s]\n", time.Since(start))
 		}
 		start = time.Now()
 		o := make([]*big.Int, len(res))
+		q := new(big.Int)
 		for i, x := range res {
-			q := new(big.Int).Mul(x, invlen)
-			q.Mod(q, self.modulus)
-			o[i] = q
+			q.Mul(x, invlen)
+			o[i] = new(big.Int).Mod(q, self.modulus)
 		}
 		if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-			fmt.Printf("    invfft final [%s]\n", time.Since(start))
+			//	fmt.Printf("    invfft final [%s]\n", time.Since(start))
 		}
 		return o
 	} else {
@@ -631,7 +571,7 @@ func (self *PrimeField) fft(vals []*big.Int, root_of_unity *big.Int, inv bool) [
 		start = time.Now()
 		res := self._fft(vals, rootz[0:len(rootz)-1])
 		if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-			fmt.Printf("    reg_fft core [%s]\n", time.Since(start))
+			//	fmt.Printf("    reg_fft core [%s]\n", time.Since(start))
 		}
 		return res
 	}
@@ -641,294 +581,146 @@ func (self *PrimeField) mul_polys_fft(a []*big.Int, b []*big.Int, root_of_unity 
 	x1 := self.fft(a, root_of_unity, false)
 	x2 := self.fft(b, root_of_unity, false)
 	c := make([]*big.Int, len(x1))
+	t := new(big.Int)
 	for i, v1 := range x1 {
-		t := new(big.Int).Mul(v1, x2[i])
-		c[i] = t.Mod(t, self.modulus)
+		t.Mul(v1, x2[i])
+		c[i] = new(big.Int).Mod(t, self.modulus)
 	}
 	return self.fft(c, root_of_unity, true)
 }
 
 // Optimized version of the above restricted to deg-4 polynomials
+func _multi_interp_4(ch chan IndexedIntArrays, chinvtarget chan IndexedInt, _xsets [][]*big.Int, _ysets [][]*big.Int, m *big.Int, i0 int) {
+	f, _ := NewPrimeField(nil)
+	nxs0 := new(big.Int)
+	nxs1 := new(big.Int)
+	nxs2 := new(big.Int)
+	nxs3 := new(big.Int)
+	x01 := new(big.Int)
+	x02 := new(big.Int)
+	x03 := new(big.Int)
+	x12 := new(big.Int)
+	x13 := new(big.Int)
+	x23 := new(big.Int)
+	t3 := new(big.Int)
+	t2 := new(big.Int)
+	sum_xs2_xs3 := new(big.Int)
+	sub_nxs0_xs1 := new(big.Int)
+	for _j, xs := range _xsets {
+		j := _j + i0
+		x01.Mul(xs[0], xs[1])
+		x02.Mul(xs[0], xs[2])
+		x03.Mul(xs[0], xs[3])
+		x12.Mul(xs[1], xs[2])
+		x13.Mul(xs[1], xs[3])
+		x23.Mul(xs[2], xs[3])
+		nxs0.Neg(xs[0])
+		nxs1.Neg(xs[1])
+		nxs2.Neg(xs[2])
+		nxs3.Neg(xs[3])
+		sum_xs2_xs3.Add(xs[2], xs[3])
+		sub_nxs0_xs1.Sub(nxs0, xs[1])
+
+		// eq[0] := create_poly4(-x12 * xs[3] % m, (x12 + x13 + x23), -xs[1]-xs[2]-xs[3], 1)
+		// eq[1] := create_poly4(-x02 * xs[3] % m, (x02 + x03 + x23), -xs[0]-xs[2]-xs[3], 1)
+		// eq[2] := create_poly4(-x01 * xs[3] % m, (x01 + x03 + x13), -xs[0]-xs[1]-xs[3], 1)
+		// eq[3] := create_poly4(-x01 * xs[2] % m, (x01 + x02 + x12), -xs[0]-xs[1]-xs[2], 1)
+		eq := [][]*big.Int{
+			create_poly4(new(big.Int).Mod(t3.Mul(nxs3, x12), m), new(big.Int).Add(t2.Add(x12, x13), x23), new(big.Int).Sub(nxs1, sum_xs2_xs3), ONE),
+			create_poly4(new(big.Int).Mod(t3.Mul(x02, nxs3), m), new(big.Int).Add(t2.Add(x02, x03), x23), new(big.Int).Sub(nxs0, sum_xs2_xs3), ONE),
+			create_poly4(new(big.Int).Mod(t3.Mul(x01, nxs3), m), new(big.Int).Add(t2.Add(x01, x03), x13), new(big.Int).Sub(sub_nxs0_xs1, xs[3]), ONE),
+			create_poly4(new(big.Int).Mod(t3.Mul(x01, nxs2), m), new(big.Int).Add(t2.Add(x01, x02), x12), new(big.Int).Sub(sub_nxs0_xs1, xs[2]), ONE),
+		}
+
+		ch <- IndexedIntArrays{idx: j, data: [][]*big.Int{_ysets[_j], eq[0], eq[1], eq[2], eq[3]}}
+		for k := 0; k < 4; k++ {
+			chinvtarget <- IndexedInt{idx: j*4 + k, data: f.eval_quartic(eq[k], xs[k])}
+		}
+	}
+}
+
+func _multi_interp_4_part2(ch chan IndexedIntArray, data [][][]*big.Int, invalls []*big.Int, i0 int) {
+	f, _ := NewPrimeField(nil)
+	t0 := new(big.Int)
+	t1 := new(big.Int)
+	t2 := new(big.Int)
+	t3 := new(big.Int)
+	inv_y0 := new(big.Int)
+	inv_y1 := new(big.Int)
+	inv_y2 := new(big.Int)
+	inv_y3 := new(big.Int)
+	for _i, d := range data {
+		i := i0 + _i
+		ys, eq0, eq1, eq2, eq3 := d[0], d[1], d[2], d[3], d[4]
+		invallz := invalls[i*4 : i*4+4]
+		inv_y0.Mod(t0.Mul(ys[0], invallz[0]), f.modulus)
+		inv_y1.Mod(t1.Mul(ys[1], invallz[1]), f.modulus)
+		inv_y2.Mod(t2.Mul(ys[2], invallz[2]), f.modulus)
+		inv_y3.Mod(t3.Mul(ys[3], invallz[3]), f.modulus)
+		e := make([]*big.Int, 4)
+		// [(eq0[i] * inv_y0 + eq1[i] * inv_y1 + eq2[i] * inv_y2 + eq3[i] * inv_y3) % m for i in range(4)])
+		for j := 0; j < 4; j++ {
+			e[j] = new(big.Int).Mod(t1.Add(t0.Add(t1.Mul(eq0[j], inv_y0), t2.Mul(eq1[j], inv_y1)), t3.Add(t1.Mul(eq2[j], inv_y2), t2.Mul(eq3[j], inv_y3))), f.modulus)
+		}
+		ch <- IndexedIntArray{idx: i, data: e}
+	}
+}
+
 func (self *PrimeField) multi_interp_4(xsets, ysets [][]*big.Int) [][]*big.Int {
 	data := make([][][]*big.Int, len(xsets))
 	invtargets := make([]*big.Int, len(xsets)*4)
-	m := self.modulus
-	var wg sync.WaitGroup
-	nj := len(xsets) / NUM_CORES
-	if nj < 500 {
-		nj = 500
+	nev := len(xsets)
+	nj := min_iterations(nev, 3)
+	ch := make(chan IndexedIntArrays, nev)
+	ch2 := make(chan IndexedIntArray, nev*4)
+	chinvtarget := make(chan IndexedInt)
+	for i := 0; i < nev; i += nj {
+		i1 := i + nj
+		if i1 > nev {
+			i1 = nev
+		}
+		go _multi_interp_4(ch, chinvtarget, xsets[i:i1], ysets[i:i1], self.modulus, i)
 	}
-	for i := 0; i < len(xsets); i += nj {
-		wg.Add(1)
-		go func(i0 int, i1 int) {
-			if i1 > len(xsets) {
-				i1 = len(xsets)
-			}
-			nxs0 := new(big.Int)
-			nxs1 := new(big.Int)
-			nxs2 := new(big.Int)
-			nxs3 := new(big.Int)
-			x01 := new(big.Int)
-			x02 := new(big.Int)
-			x03 := new(big.Int)
-			x12 := new(big.Int)
-			x13 := new(big.Int)
-			x23 := new(big.Int)
-			sum_xs2_xs3 := new(big.Int)
-			sub_nxs0_xs1 := new(big.Int)
-			//s3 := new(big.Int)
-			//s2 := new(big.Int)
-			//ONE := big.NewInt(1)
 
-			for j := i0; j < i1; j++ {
-				xs := xsets[j] //[]*big.Int
-
-				x01.Mul(xs[0], xs[1])
-				x02.Mul(xs[0], xs[2])
-				x03.Mul(xs[0], xs[3])
-				x12.Mul(xs[1], xs[2])
-				x13.Mul(xs[1], xs[3])
-				x23.Mul(xs[2], xs[3])
-				nxs0.Neg(xs[0])
-				nxs1.Neg(xs[1])
-				nxs2.Neg(xs[2])
-				nxs3.Neg(xs[3])
-				sum_xs2_xs3.Add(xs[2], xs[3])
-				sub_nxs0_xs1.Sub(nxs0, xs[1])
-
-				// eq0 := create_poly4(-x12 * xs[3] % m, (x12 + x13 + x23), -xs[1]-xs[2]-xs[3], 1)
-				t3 := new(big.Int).Mul(nxs3, x12)
-				t2 := new(big.Int).Add(x12, x13)
-				t1 := new(big.Int).Sub(nxs1, sum_xs2_xs3)
-				eq0 := create_poly4(t3.Mod(t3, m), t2.Add(t2, x23), t1, big.NewInt(1))
-				invtargets[j*4+0] = self.eval_quartic(eq0, xs[0])
-
-				// eq1 := create_poly4(-x02 * xs[3] % m, (x02 + x03 + x23), -xs[0]-xs[2]-xs[3], 1)
-				t3 = new(big.Int).Mul(x02, nxs3)
-				t2 = new(big.Int).Add(x02, x03)
-				t1 = new(big.Int).Sub(nxs1, sum_xs2_xs3)
-				eq1 := create_poly4(t3.Mod(t3, m), t2.Add(t2, x23), t1.Sub(nxs0, sum_xs2_xs3), big.NewInt(1))
-				invtargets[j*4+1] = self.eval_quartic(eq1, xs[1])
-
-				// eq2 := create_poly4(-x01 * xs[3] % m, (x01 + x03 + x13), -xs[0]-xs[1]-xs[3], 1)
-				t3 = new(big.Int).Mul(x01, nxs3)
-				t2 = new(big.Int).Add(x01, x03)
-				t1 = new(big.Int).Sub(sub_nxs0_xs1, xs[3])
-				eq2 := create_poly4(t3.Mod(t3, m), t2.Add(t2, x13), t1, big.NewInt(1))
-				invtargets[j*4+2] = self.eval_quartic(eq2, xs[2])
-
-				// eq3 := create_poly4(-x01 * xs[2] % m, (x01 + x02 + x12), -xs[0]-xs[1]-xs[2], 1)
-				t3 = new(big.Int).Mul(x01, nxs2)
-				t3.Mod(t3, m)
-				t2 = new(big.Int).Add(x01, x02)
-				t2.Add(t2, x12)
-				t1 = new(big.Int).Sub(sub_nxs0_xs1, xs[2])
-				eq3 := create_poly4(t3, t2, t1, big.NewInt(1))
-				invtargets[j*4+3] = self.eval_quartic(eq3, xs[3])
-
-				data[j] = [][]*big.Int{ysets[j], eq0, eq1, eq2, eq3}
-			}
-			wg.Done()
-		}(i, i+nj)
+	for i := 0; i < nev; i++ {
+		d := <-ch
+		data[d.idx] = d.data
+		for k := 0; k < 4; k++ {
+			e := <-chinvtarget
+			invtargets[e.idx] = e.data
+		}
 	}
-	// wait for goroutines to finish
-
-	wg.Wait()
 
 	invalls := self.multi_inv(invtargets)
-	nd := len(data)
-	dj := 1500
-	o := make([][]*big.Int, nd)
-	for q := 0; q < nd; q += dj {
-		wg.Add(1)
-		go func(i0 int, i1 int) {
-			for i := i0; i < i1; i++ {
-				if i < nd {
-					d := data[i]
-					ys := d[0]
-					eq0, eq1, eq2, eq3 := d[1], d[2], d[3], d[4]
-					invallz := invalls[i*4 : i*4+4]
-					inv_y0 := new(big.Int).Mul(ys[0], invallz[0])
-					inv_y0.Mod(inv_y0, self.modulus)
-					inv_y1 := new(big.Int).Mul(ys[1], invallz[1])
-					inv_y1.Mod(inv_y1, self.modulus)
-					inv_y2 := new(big.Int).Mul(ys[2], invallz[2])
-					inv_y2.Mod(inv_y2, self.modulus)
-					inv_y3 := new(big.Int).Mul(ys[3], invallz[3])
-					inv_y3.Mod(inv_y3, self.modulus)
-					e := make([]*big.Int, 4)
-					// [(eq0[i] * inv_y0 + eq1[i] * inv_y1 + eq2[i] * inv_y2 + eq3[i] * inv_y3) % m for i in range(4)])
-					for j := 0; j < 4; j++ {
-						a := new(big.Int).Add(new(big.Int).Mul(eq0[j], inv_y0), new(big.Int).Mul(eq1[j], inv_y1))
-						a.Add(a, new(big.Int).Mul(eq2[j], inv_y2))
-						a.Add(a, new(big.Int).Mul(eq3[j], inv_y3))
-						e[j] = a.Mod(a, self.modulus)
-					}
-					o[i] = e
-				}
-			}
-			wg.Done()
-		}(q, q+dj)
+
+	o := make([][]*big.Int, nev)
+	for i := 0; i < nev; i += nj {
+		i1 := i + nj
+		if i1 > nev {
+			i1 = nev
+		}
+		go _multi_interp_4_part2(ch2, data[i:i1], invalls, i)
 	}
-
-	wg.Wait()
-	// TODO: assert o == [self.lagrange_interp_4(xs, ys) for xs, ys in zip(xsets, ysets)]
-	return o
-}
-
-// Optimized version of the above restricted to deg-4 polynomials
-func (self *PrimeField) multi_interp_4new(xsets, ysets [][]*big.Int) [][]*big.Int {
-	data := make([][][]*big.Int, len(xsets))
-	invtargets := make([]*big.Int, len(xsets)*4)
-	start := time.Now()
-	m := self.modulus
-	var wg sync.WaitGroup
-	nj := len(xsets) / NUM_CORES
-	if nj < 256 {
-		nj = 256
-	}
-	for i := 0; i < len(xsets); i += nj {
-		wg.Add(1)
-		go func(j0 int, j1 int) {
-			startb := time.Now()
-			if j1 > len(xsets) {
-				j1 = len(xsets)
-			}
-			nxs0 := new(big.Int)
-			nxs1 := new(big.Int)
-			nxs2 := new(big.Int)
-			nxs3 := new(big.Int)
-			x01 := new(big.Int)
-			x02 := new(big.Int)
-			x03 := new(big.Int)
-			x12 := new(big.Int)
-			x13 := new(big.Int)
-			x23 := new(big.Int)
-			sum_xs2_xs3 := new(big.Int)
-			sub_nxs0_xs1 := new(big.Int)
-			s3 := new(big.Int)
-			s2 := new(big.Int)
-			ONE := big.NewInt(1)
-			for j := j0; j < j1; j++ {
-				xs := xsets[j]
-
-				x01.Mul(xs[0], xs[1])
-				x02.Mul(xs[0], xs[2])
-				x03.Mul(xs[0], xs[3])
-				x12.Mul(xs[1], xs[2])
-				x13.Mul(xs[1], xs[3])
-				x23.Mul(xs[2], xs[3])
-				nxs0.Neg(xs[0])
-				nxs1.Neg(xs[1])
-				nxs2.Neg(xs[2])
-				nxs3.Neg(xs[3])
-				sum_xs2_xs3.Add(xs[2], xs[3])
-				sub_nxs0_xs1.Sub(nxs0, xs[1])
-
-				// eq0 := create_poly4(-x12 * xs[3] % m, (x12 + x13 + x23), -xs[1]-xs[2]-xs[3], 1)
-				s3.Mul(nxs3, x12)
-				s2.Add(x12, x13)
-				eq0 := create_poly4(new(big.Int).Mod(s3, m), new(big.Int).Add(s2, x23), new(big.Int).Sub(nxs1, sum_xs2_xs3), ONE)
-				invtargets[j*4+0] = self.eval_quartic(eq0, xs[0])
-
-				// eq1 := create_poly4(-x02 * xs[3] % m, (x02 + x03 + x23), -xs[0]-xs[2]-xs[3], 1)
-				s3.Mul(x02, nxs3)
-				s2.Add(x02, x03)
-				eq1 := create_poly4(new(big.Int).Mod(s3, m), new(big.Int).Add(s2, x23), new(big.Int).Sub(nxs0, sum_xs2_xs3), ONE)
-				invtargets[j*4+1] = self.eval_quartic(eq1, xs[1])
-
-				// eq2 := create_poly4(-x01 * xs[3] % m, (x01 + x03 + x13), -xs[0]-xs[1]-xs[3], 1)
-				s3.Mul(x01, nxs3)
-				s2.Add(x01, x03)
-				eq2 := create_poly4(new(big.Int).Mod(s3, m), new(big.Int).Add(s2, x13), new(big.Int).Sub(sub_nxs0_xs1, xs[3]), ONE)
-				invtargets[j*4+2] = self.eval_quartic(eq2, xs[2])
-
-				// eq3 := create_poly4(-x01 * xs[2] % m, (x01 + x02 + x12), -xs[0]-xs[1]-xs[2], 1)
-				s3.Mul(x01, nxs2)
-				s2.Add(x01, x02)
-				eq3 := create_poly4(new(big.Int).Mod(s3, m), new(big.Int).Add(s2, x12), new(big.Int).Sub(sub_nxs0_xs1, xs[2]), ONE)
-				invtargets[j*4+3] = self.eval_quartic(eq3, xs[3])
-
-				data[j] = [][]*big.Int{ysets[j], eq0, eq1, eq2, eq3}
-			}
-			wg.Done()
-			if time.Since(startb).Seconds() > MIN_SECONDS_BENCHMARK {
-				//	fmt.Printf("--> %d %d [%d] %s\n", j0, j1, nj, time.Since(startb))
-			}
-		}(i, i+nj)
-	}
-	// wait for goroutines to finish
-	wg.Wait()
-	invalls := self.multi_inv(invtargets)
-	start = time.Now()
-	nd := len(data)
-	dj := len(data) / NUM_CORES
-	if dj < 500 {
-		dj = 500
-	}
-	o := make([][]*big.Int, nd)
-	for q := 0; q < nd; q += dj {
-		wg.Add(1)
-		go func(i0 int, i1 int) {
-			if i1 > nd {
-				i1 = nd
-			}
-			for i := i0; i < i1; i++ {
-				d := data[i]
-				ys := d[0]
-				eq0, eq1, eq2, eq3 := d[1], d[2], d[3], d[4]
-				invallz := invalls[i*4 : i*4+4]
-				t0 := new(big.Int)
-				t1 := new(big.Int)
-				t2 := new(big.Int)
-				t3 := new(big.Int)
-				t0.Mul(ys[0], invallz[0])
-				inv_y0 := new(big.Int).Mod(t0, self.modulus)
-				t0.Mul(ys[1], invallz[1])
-				inv_y1 := new(big.Int).Mod(t0, self.modulus)
-				t0.Mul(ys[2], invallz[2])
-				inv_y2 := new(big.Int).Mod(t0, self.modulus)
-				t0.Mul(ys[3], invallz[3])
-				inv_y3 := new(big.Int).Mod(t0, self.modulus)
-				e := make([]*big.Int, 4)
-				// [(eq0[i] * inv_y0 + eq1[i] * inv_y1 + eq2[i] * inv_y2 + eq3[i] * inv_y3) % m for i in range(4)])
-				for j := 0; j < 4; j++ {
-					t0.Mul(eq0[j], inv_y0)
-					t1.Mul(eq1[j], inv_y1)
-					t2.Add(t0, t1)
-					t0.Mul(eq2[j], inv_y2)
-					t1.Mul(eq3[j], inv_y3)
-					t3.Add(t0, t1)
-					t0.Add(t2, t3)
-					e[j] = t1.Mod(t0, self.modulus)
-				}
-				o[i] = e
-			}
-			wg.Done()
-		}(q, q+dj)
-	}
-	wg.Wait()
-	if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-		//		fmt.Printf("    multi_interp_4 phase 3b [%s]\n", time.Since(start))
+	for i := 0; i < nev; i++ {
+		d := <-ch2
+		o[d.idx] = d.data
 	}
 	// TODO: assert o == [self.lagrange_interp_4(xs, ys) for xs, ys in zip(xsets, ysets)]
 	return o
 }
 
 // Compute a MIMC permutation for some number of steps
-func (self *PrimeField) MiMC(inp *big.Int, steps *big.Int, round_constants []*big.Int) *big.Int {
+func (self *PrimeField) MiMC(input *big.Int, steps *big.Int, round_constants []*big.Int) *big.Int {
 	start := time.Now()
-	t := new(big.Int).Set(inp)
+	inp := new(big.Int).Set(input)
 	t1 := new(big.Int)
 	t2 := new(big.Int)
 	nsteps := int(steps.Int64() - 1)
-	THREE := big.NewInt(3)
+
 	for i := 0; i < nsteps; i++ {
 		// inp = (inp**3 + round_constants[i % len(round_constants)]) % modulus
-		t1.Exp(t, THREE, nil)
-		t2.Add(t1, round_constants[i%len(round_constants)])
-		t.Mod(t2, self.modulus)
+		inp.Mod(t2.Add(t1.Exp(inp, THREE, nil), round_constants[i%len(round_constants)]), self.modulus)
 	}
 	fmt.Printf("MIMC computed in %s\n\n", time.Since(start))
-	return t
+	return inp
 }
