@@ -83,12 +83,11 @@ $ ./build/bin/plasma --datadir /tmp/datadir7 --plasma.datadir /tmp/plasma7 --por
 # [experimental] use --raft flag to run start a permissioned network
 
 # If successful, the node will start off with some sample deposits
-Deposit:  TokenID b437230feb2d24db | Denomination 1000000000000000000 | DepositIndex 0  (Depositor: 0xA45b77a98E2B840617e2eC6ddfBf71403bdCb683)
-Deposit:  TokenID 37b01bd3adfc4ef3 | Denomination 1000000000000000000 | DepositIndex 1  (Depositor: 0x82Da88C31E874C678D529ad51E43De3A4BAF3914)
-Deposit:  TokenID b76883d225414136 | Denomination 2000000000000000000 | DepositIndex 2  (Depositor: 0x3088666E05794d2498D9d98326c1b426c9950767)
-Deposit:  TokenID 9af84bc1208918b | Denomination 3000000000000000000 | DepositIndex 3  (Depositor: 0xBef06CC63C8f81128c26efeDD461A9124298092b)
-Deposit:  TokenID 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6)
-Deposit:  TokenID 5fb1eec526dc7a1e | Denomination 5000000000000000000 | DepositIndex 5  (Depositor: 0x59B66c66b9159b62DaFCB5fEde243384DFca076D)
+Deposit:  TokenID b437230feb2d24db | Denomination 1000000000000000000 | DepositIndex 0  (Depositor: 0xA45b77a98E2B840617e2eC6ddfBf71403bdCb683, TxHash: 0x75e0a5931a9bbcca8f307aabc08e9e452d08e740a02fc1734e6985e62ce95b8b)
+Deposit:  TokenID 37b01bd3adfc4ef3 | Denomination 1000000000000000000 | DepositIndex 1  (Depositor: 0x82Da88C31E874C678D529ad51E43De3A4BAF3914, TxHash: 0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2)
+Deposit:  TokenID b76883d225414136 | Denomination 2000000000000000000 | DepositIndex 2  (Depositor: 0x3088666E05794d2498D9d98326c1b426c9950767, TxHash: 0xfba309f78744708016b3b5a8d671ee6304450669e08ec32359e571e08a469ab7)
+Deposit:  TokenID 9af84bc1208918b  | Denomination 3000000000000000000 | DepositIndex 3  (Depositor: 0xBef06CC63C8f81128c26efeDD461A9124298092b, TxHash: 0xcf44df93b0d3d3f72cb3ccfbc5287270d6cfc8e7753c8bfd2453712924796e9c)
+Deposit:  TokenID 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6, TxHash: 0xaec9f6679e1ef9658bb852053c7ad35962641bb05e639e6fc582e6d8fae1c218)
 ...
 ```
 *Note*: [wolk-Plasma core](https://github.com/wolkdb/plasma) backend are yet to be released after security audit.
@@ -143,12 +142,12 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"1","method":"plasma_getPlasmaBalanc
 * `getPlasmaToken(tokenID uint64, blockNumber uint64)` - get token by tokenID and targeted blockNumber. This can used by a node to verify token ownership when receiving a token from sender.
 
 ```
-> plasma.getPlasmaToken("0xb437230feb2d24db" , 1)
+> plasma.getPlasmaToken("0x37b01bd3adfc4ef3" , 1)
 {
     allowance: 0,
     balance: 1000000000000000000,
     denomination: 1000000000000000000,
-    owner: "0xa45b77a98e2b840617e2ec6ddfbf71403bdcb683",
+    owner: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
     prevBlock: 1,
     spent: 0
 }
@@ -200,7 +199,7 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"3","method":"plasma_getPlasmaBloomF
     bloomID: "0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0",
     l3ChainRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
     parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    sig: "dec57c17b5eb1777683b168e9c600903b8c5354d9c5596aef3a07f8e1fda05b327a991a8015dcf87744d473aa09e37177b03f5632729fc37ea32cf3ec4cba26700",
+    sig: "18ebe7fee28021e6519411c23f4d5b5464cc4f496273f5d42cf691ee57144d813412f8348479c41d243e9c69dd13ad2a64d6d0501f3168b82bb37bb364c2a51501",
     tokenRoot: "0x3d3419dee60f8cc5a0130ed16b09561bdd41b6799245e26ffa43544269a4bebc",
     transactionRoot: "0x5348248ba49f2802573cf7a942f24ab2cc330f0ec1e9113e121cd049833bbea5"
 }
@@ -217,7 +216,7 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBlock"
         "accountRoot": "0xea57cc53a6c26fd29dbaa385138f50d9030471222cf679fa88a7274a84870bbb",
         "l3ChainRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
         "AnchorRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-        "sig": "409e1b33a53c2f9568f43a34dad1ff1e52552d2deb57575e74e0514d35b2fcc42abc1280091f3de616932d786e452f64ac50dbd30f7c1d11dda142638da5c2ee01",
+        "sig": "18ebe7fee28021e6519411c23f4d5b5464cc4f496273f5d42cf691ee57144d813412f8348479c41d243e9c69dd13ad2a64d6d0501f3168b82bb37bb364c2a51501",
         "blockNumber": "0000000000000001"
     }
 }
@@ -225,9 +224,9 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBlock"
 
 * `getPlasmaTransactionReceipt(txHash bytes32)`  - get transaction Info {receipt, proof, token history} by txHash. The receipt can be used to check whether a transaction actually was successful.  The sender could send this back to the recipient, or the recipient could just call this to retrieve the proof.
 ```
-> plasma.getPlasmaTransactionReceipt("0x5ed6c927c7c2d74e6a533eb642b1ebc2ed0992321918e8f0180634cf125674ed");
+> plasma.getPlasmaTransactionReceipt("0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2");
 {
-    blockNumber: 0,
+    blockNumber: 1,
     receipt: 0
 }
 ```
@@ -289,12 +288,11 @@ Note: balance field is optional
 # Retrieve Token State from Block #2
 > plasma.getPlasmaToken("0x37b01bd3adfc4ef3", 2)
 {
-    allowance: "0x16345785d8a0001",
-    balance: "0x9b6e64a8ec5fffd",
-    denomination: "0xde0b6b3a7640000",
+    allowance: 100000000000000001,
+    balance: 699999999999999997,
+    denomination: 1000000000000000000,
     owner: "0x3088666e05794d2498d9d98326c1b426c9950767",
     prevBlock: 2,
-    spent: "0x2c68af0bb140002"
 }
 
 # Retrieve Block #2
@@ -305,8 +303,8 @@ Note: balance field is optional
     blockNumber: "0000000000000002",
     bloomID: "0xda0f9b66e614309fead8740a3f318fd4864a09462753b0db8ae5004c7d7bfa68",
     l3ChainRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-    parentHash: "0xf885ae37119107eca4fba7e78686a3b8ba80e368c4d361deb35b39359c6bf11c",
-    sig: "55ea42f9c8ea3f90cb8fdf09720f196412d278860289bca5d339aad2fff789df7a6db329860022c965d4de942ef43ca24e44f784ed25619184a8e3cf1cbd346f00",
+    parentHash: "0x545a89b8896d4fb799cad636781f509996d0ece3b7ab5f7aed27d6f9e65735fe",
+    sig: "f44d3eef790e675532668532b80d4f94f0269c61e853230b1a093c7e3ab203bc4e24fa01f8b9001729cfb35edffa28548b67540341f989a6e1073fac4a40bac400",
     tokenRoot: "0x16bc6ad0aa4cec83fdc3c7e3ae217afb9bc75fcb358f329debd54b8a00fa42f2",
     transactionRoot: "0x626cfba5088c775e31d2c6a56f45bc0d34975b3747132452926181623f369a1d"
 }
@@ -354,11 +352,11 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"8","method":"plasma_getPlasmaBlock"
     "jsonrpc": "2.0",
     "id": "8",
     "result": {
-        "parentHash": "0xf885ae37119107eca4fba7e78686a3b8ba80e368c4d361deb35b39359c6bf11c",
+        "parentHash": "0x545a89b8896d4fb799cad636781f509996d0ece3b7ab5f7aed27d6f9e65735fe",
         "blockNumber": "0000000000000002",
         "tokenRoot": "0x16bc6ad0aa4cec83fdc3c7e3ae217afb9bc75fcb358f329debd54b8a00fa42f2",
         "l3ChainRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-        "sig": "55ea42f9c8ea3f90cb8fdf09720f196412d278860289bca5d339aad2fff789df7a6db329860022c965d4de942ef43ca24e44f784ed25619184a8e3cf1cbd346f00",
+        "sig": "f44d3eef790e675532668532b80d4f94f0269c61e853230b1a093c7e3ab203bc4e24fa01f8b9001729cfb35edffa28548b67540341f989a6e1073fac4a40bac400",
         "transactionRoot": "0x626cfba5088c775e31d2c6a56f45bc0d34975b3747132452926181623f369a1d",
         "bloomID": "0xda0f9b66e614309fead8740a3f318fd4864a09462753b0db8ae5004c7d7bfa68",
         "accountRoot": "0x5c237e0b259471155074e667da1674037fd1b0ef0220063e524940b07d3f503f",
@@ -371,6 +369,9 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"8","method":"plasma_getPlasmaBlock"
 
 
 ## Anchor Transaction
+
+* BlockchainID Assignment - A valid token is required to create Layer 3 blockchain. Layer 3 blockchainID is automatically assigned using the last 8 bytes of  `Keccak256(tokenID, blockchainNonce)`.  For example, the first L3 chain created by `0x37b01bd3adfc4ef3` will have blockchainID `0x69eb463bc4f6b2df`, the last 8 bytes of `Keccak256(37b01bd3adfc4ef3,0)`
+
 * `sendAnchorTransaction(AnchorTX)` - requires AnchorTransaction type as input. This function is called by Layer3 Chain operators to submit their blockhashes to plasma nodes. AnchorTransactions can also be used to modify Layer3 chain permission by passing in non-empty extra.
 
 ```
@@ -386,31 +387,32 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"8","method":"plasma_getPlasmaBlock"
 WARNING: empty extra must be encoded as 'RLP([[],[]])' or 'c2c0c0' when there's no change for ownership
 ```
 
+
 ```
 # Creates Layer3 Blockchain (AnchorTx with blocknumber #0)
-plasma.sendAnchorTransaction({"blockchainID":0xd9414b22221ce8f0, "blocknumber":0, "blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b", "sig":"0x66abbaf80f37c2afdd76ef1171ac8f09e6743723df5c5c3c0ca8fe05444b9da37dd94f2bc04c3d306435f754e354d31d180070e1eacbcc995cddeddf3236824200"})
-"0x7cd91117f0776582c3d58b0ef34d7c7b73c4229da60eb8a6326083f35836d01f"
+> plasma.sendAnchorTransaction({"blockchainID":"0x69eb463bc4f6b2df","blocknumber":"0x0","blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b","sig":"0xae7742aafad0c710dcc206f1677c15a2057cc2cc55f6bf3fccba5ccecbdb5a9b71f0f36b0df9c534bf1aa52fc4e5e2fbb1a6d839f0d0b9eb461abb774970037901"})
+"0x9922a9c18247ad9357e450d24cb9029a83772323a8f10a6b46c150ebc7ceb5ea"
 
 
 # Add/Remove Owners for a Layer3 Blockchain (AnchorTx with non-empty extradata)
-plasma.sendAnchorTransaction({"blockchainID":0xd9414b22221ce8f0, "blocknumber":1, "blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "extra":{"addedOwners":["0xba3e1663ada8f3e4e1574bab2494c727d7cb81aa"],"removedOwners":[]}, "sig":"0xa653573979fdf65e863a78e29faebf47eca3655687b81a57c8f0f87d3fb845f12b90bef31e02e2b6b399bde4093be5deb180cf85b8a1af98c488ce189d865bc001"})
-"0xe39906b15b115e62695736a45d355a97821e6190b4a682b561f20e086180bb60"
+> plasma.sendAnchorTransaction({"blockchainID":"0x69eb463bc4f6b2df","blocknumber":"0x1","blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4","extra":{"addedOwners":["0x3088666E05794d2498D9d98326c1b426c9950767"],"removedOwners":[]},"sig":"0x767b66becf65544073daa10991d94f77f05026e7df5338a6001a423d3b38b54540226bd08856a8aa684c4c1a0d6dd01e1d4262f22b45fcc2821505c395d2d1d801"})
+"0x2236b658c5e00ba65cf7d8af8eec5492aae68ba88ec5ae0980d223fcd509bca9"
 ```
 ```
 # Creates Layer3 Blockchain (AnchorTx with blocknumber #0)
-curl -X POST --data  '{"jsonrpc":"2.0","id":"9","method":"plasma_getPlasmaTransactionReceipt","params":[{"blockchainID":"0xd9414b22221ce8f0", "blocknumber":"0x0", "blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b", "sig":"0x66abbaf80f37c2afdd76ef1171ac8f09e6743723df5c5c3c0ca8fe05444b9da37dd94f2bc04c3d306435f754e354d31d180070e1eacbcc995cddeddf3236824200"}]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"9","method":"plasma_sendAnchorTransaction","params":[{"blockchainID":"0x69eb463bc4f6b2df", "blocknumber":"0x0", "blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b", "sig":"0xae7742aafad0c710dcc206f1677c15a2057cc2cc55f6bf3fccba5ccecbdb5a9b71f0f36b0df9c534bf1aa52fc4e5e2fbb1a6d839f0d0b9eb461abb774970037901"}]}' -H 'content-type:application/json;' 'localhost:8502';
 {
     "jsonrpc": "2.0",
     "id": "9",
-    "result": "0x7cd91117f0776582c3d58b0ef34d7c7b73c4229da60eb8a6326083f35836d01f"
+    "result": "0x9922a9c18247ad9357e450d24cb9029a83772323a8f10a6b46c150ebc7ceb5ea"
 }
 
 
 # Add/Remove Owners for a Layer3 Blockchain (AnchorTx with non-empty extradata)
-curl -X POST --data '{"jsonrpc":"2.0","id":"10","method":"plasma_sendPlasmaTransaction","params":[{"blockchainID":"0xd9414b22221ce8f0", "blocknumber":"0x1", "blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "extra":{"addedOwners":["0xba3e1663ada8f3e4e1574bab2494c727d7cb81aa"],"removedOwners":[]}, "sig":"0xa653573979fdf65e863a78e29faebf47eca3655687b81a57c8f0f87d3fb845f12b90bef31e02e2b6b399bde4093be5deb180cf85b8a1af98c488ce189d865bc001"}]}' -H 'content-type:application/json;' 'localhost:8502'
+curl -X POST --data '{"jsonrpc":"2.0","id":"10","method":"plasma_sendAnchorTransaction","params":[{"blockchainID":"0x69eb463bc4f6b2df", "blocknumber":"0x1", "blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "extra":{"addedOwners":["0x3088666E05794d2498D9d98326c1b426c9950767"],"removedOwners":[]}, "sig":"0x767b66becf65544073daa10991d94f77f05026e7df5338a6001a423d3b38b54540226bd08856a8aa684c4c1a0d6dd01e1d4262f22b45fcc2821505c395d2d1d801"}]}' -H'content-type:application/json;' 'localhost:8502'
 {
     "jsonrpc": "2.0",
     "id": "10",
-    "result": "0xe39906b15b115e62695736a45d355a97821e6190b4a682b561f20e086180bb60"
+    "result": "0x2236b658c5e00ba65cf7d8af8eec5492aae68ba88ec5ae0980d223fcd509bca9"
 }
 ```
