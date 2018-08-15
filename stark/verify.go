@@ -129,23 +129,21 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 	//  input: proof
 	//  output: errV
 	var errV error
-	wg.Add(1)
+	var wg2 sync.WaitGroup
+	wg2.Add(1)
 	go func() {
 		start := time.Now()
 		errV = verify_low_degree_proof(f, proof.LRoot, G2, proof.Child, int(steps.Int64()*2), ext_factor)
-		wg.Done()
+		wg2.Done()
 		fmt.Printf("(v3) verify_low_degree_proof [%s => %s]\n", time.Since(start), time.Since(start0))
 	}()
-	wg.Wait()
 
-	// check (v3) errV
-	if errV != nil {
-		return errV
-	}
+	wg.Wait()
 
 	// (v4) Verified consistency checks
 	//  input: proof, last_step_position, output from (v1), positions, k1-k4, constants_mini_polynomial from (v2),
 	//  output: chErr
+	start := time.Now()
 	nev := len(positions)
 	njmp := 5
 	buf := nev / njmp
@@ -160,6 +158,12 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 		go verify_consistency_checks(chErr, proof, G2, steps, precision, last_step_position, skips, skips2, zeropoly2, interpolant, constants_mini_polynomial, k1, k2, k3, k4, positions[i:i1], proof.Branches, i)
 	}
 
+	wg2.Wait()
+	// check (v3) errV
+	if errV != nil {
+		return errV
+	}
+
 	// check (v4) chErr
 	for i := 0; i < buf; i++ {
 		err := <-chErr
@@ -168,7 +172,7 @@ func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []
 		}
 	}
 
-	fmt.Printf("(v4) Verified %d consistency checks [%s]\n", spot_check_security_factor, time.Since(start0))
+	fmt.Printf("(v4) Verified %d consistency checks [%s => %s]\n", spot_check_security_factor, time.Since(start), time.Since(start0))
 	return nil
 }
 

@@ -93,13 +93,13 @@ func min_iterations(total_iterations int, min_size_level int) int {
 	case -1:
 		m = 8
 	case 0:
-		m = 512
+		m = 32
 	case 1:
-		m = 512
+		m = 64
 	case 2:
-		m = 512
+		m = 128
 	case 3:
-		m = 512
+		m = 256
 	case 4:
 		m = 512
 	case 5:

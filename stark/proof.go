@@ -323,6 +323,9 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 	ch_c_of_p_evaluations := make(chan IndexedInt, nprecision)
 	ch_z_num_evaluations := make(chan IndexedInt, nprecision)
 	ch_z_den_evaluations := make(chan IndexedInt, nprecision)
+	d_evaluations := make([]*big.Int, nprecision)
+	ch_d_evaluations := make(chan IndexedInt, nprecision)
+	var z_num_inv []*big.Int
 	wg.Add(1)
 	go func() {
 		start := time.Now()
@@ -342,41 +345,40 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 			z_den_evaluations[d.idx] = d.data
 		}
 		fmt.Printf("(5) Computed C(P, K) polynomial [%s => %s]\n", time.Since(start), time.Since(start0))
+
+		// (6) Compute D(x) = C(P(x), P(g1*x), K(x)) / Z(x) ;;;; Z(x) = (x^steps - 1) / (x - x_atlast_step)
+		// inputs: z_num_evaluations from (5)
+		// outputs: z_num_inv
+		start = time.Now()
+		z_num_inv = f.multi_inv(z_num_evaluations)
+		fmt.Printf("(6a) Computed z_num_inv [%s => %s]\n", time.Since(start), time.Since(start0))
+
+		// (6b) Compute d_evaluations
+		// inputs: c_of_p_evaluations, z_den_evaluations, z_num_inv; output: d_evaluations
+		start = time.Now()
+		for i := int(0); i < nprecision; i += dprecision {
+			i1 := i + dprecision
+			if i1 > nprecision {
+				i1 = nprecision
+			}
+			go compute_d_evaluations(ch_d_evaluations, c_of_p_evaluations[i:i1], z_den_evaluations[i:i1], z_num_inv[i:i1], i)
+		}
+		for i := 0; i < nprecision; i++ {
+			d := <-ch_d_evaluations
+			d_evaluations[d.idx] = d.data
+		}
+		fmt.Printf("(6b) Computed d_evaluations [%s => %s]\n", time.Since(start), time.Since(start0))
+
 		wg.Done()
 	}()
 
-	// waiting for (4)+(5)
+	// waiting for (4)+(5)/(6a)/(6b)
 	wg.Wait()
-
-	// (6) Compute D(x) = C(P(x), P(g1*x), K(x)) / Z(x) ;;;; Z(x) = (x^steps - 1) / (x - x_atlast_step)
-	// inputs: z_num_evaluations from (5)
-	// outputs: z_num_inv
-	start := time.Now()
-	z_num_inv := f.multi_inv(z_num_evaluations)
-	fmt.Printf("(6a) Computed z_num_inv [%s => %s]\n", time.Since(start), time.Since(start0))
-
-	// (6b) Compute d_evaluations
-	// inputs: c_of_p_evaluations, z_den_evaluations, z_num_inv; output: d_evaluations
-	d_evaluations := make([]*big.Int, nprecision)
-	ch_d_evaluations := make(chan IndexedInt, nprecision)
-	start = time.Now()
-	for i := int(0); i < nprecision; i += dprecision {
-		i1 := i + dprecision
-		if i1 > nprecision {
-			i1 = nprecision
-		}
-		go compute_d_evaluations(ch_d_evaluations, c_of_p_evaluations[i:i1], z_den_evaluations[i:i1], z_num_inv[i:i1], i)
-	}
-	for i := 0; i < nprecision; i++ {
-		d := <-ch_d_evaluations
-		d_evaluations[d.idx] = d.data
-	}
-	fmt.Printf("(6b) Computed d_evaluations [%s => %s]\n", time.Since(start), time.Since(start0))
 
 	// (7) Compute b_evaluations and Merkle Root
 	// input: inv_z2_evaluations from (4b); p_evaluations from (2), d_evaluations from (6b)
 	// output: merkle_inp, b_evaluations
-	start = time.Now()
+	start := time.Now()
 	nev := len(inv_z2_evaluations)
 	merkle_inp := make([][]byte, len(p_evaluations))
 	njmp = min_iterations(nev, 2)
