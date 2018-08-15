@@ -12,6 +12,7 @@ const (
 )
 
 // structures used for channel
+
 type IndexedBytes struct {
 	idx  int
 	data []byte

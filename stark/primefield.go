@@ -672,8 +672,8 @@ func (self *PrimeField) multi_interp_4(xsets, ysets [][]*big.Int) [][]*big.Int {
 	nev := len(xsets)
 	nj := min_iterations(nev, 3)
 	ch := make(chan IndexedIntArrays, nev)
-	ch2 := make(chan IndexedIntArray, nev*4)
-	chinvtarget := make(chan IndexedInt)
+	ch2 := make(chan IndexedIntArray, nev)
+	chinvtarget := make(chan IndexedInt, nev*4)
 	for i := 0; i < nev; i += nj {
 		i1 := i + nj
 		if i1 > nev {
@@ -711,16 +711,15 @@ func (self *PrimeField) multi_interp_4(xsets, ysets [][]*big.Int) [][]*big.Int {
 
 // Compute a MIMC permutation for some number of steps
 func (self *PrimeField) MiMC(input *big.Int, steps *big.Int, round_constants []*big.Int) *big.Int {
-	start := time.Now()
 	inp := new(big.Int).Set(input)
 	t1 := new(big.Int)
 	t2 := new(big.Int)
 	nsteps := int(steps.Int64() - 1)
-
 	for i := 0; i < nsteps; i++ {
 		// inp = (inp**3 + round_constants[i % len(round_constants)]) % modulus
-		inp.Mod(t2.Add(t1.Exp(inp, THREE, nil), round_constants[i%len(round_constants)]), self.modulus)
+		t1.Exp(inp, THREE, nil)
+		t2.Add(t1, round_constants[i%len(round_constants)])
+		inp.Mod(t2, self.modulus)
 	}
-	fmt.Printf("MIMC computed in %s\n\n", time.Since(start))
 	return inp
 }

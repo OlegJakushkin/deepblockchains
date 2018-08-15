@@ -56,6 +56,9 @@ func TestStark(t *testing.T) {
 	fmt.Printf("------\n")
 	// Verify STARK proof
 	start = time.Now()
-	VerifyProof(f, INPUT, two_logsteps, constants, &prf)
+	err = VerifyProof(f, INPUT, two_logsteps, constants, &prf)
+	if err != nil {
+		t.Fatalf("Err: %v", err)
+	}
 	fmt.Printf("STARK verified in %s\n", time.Since(start))
 }

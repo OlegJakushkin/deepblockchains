@@ -8,164 +8,181 @@ import (
 	"time"
 )
 
+// used in (v4)
+func verify_consistency_checks(chErr chan error, proof *Proof, G2 *big.Int, steps *big.Int, precision *big.Int, last_step_position *big.Int, skips *big.Int, skips2 *big.Int, zeropoly2 []*big.Int, interpolant []*big.Int, constants_mini_polynomial []*big.Int, k1 *big.Int, k2 *big.Int, k3 *big.Int, k4 *big.Int, positions []*big.Int, branches [][][]byte, i0 int) {
+	f, _ := NewPrimeField(nil)
+	s0 := new(big.Int)
+	s1 := new(big.Int)
+	s2 := new(big.Int)
+	s3 := new(big.Int)
+	p_of_x := new(big.Int)
+	p_of_g1x := new(big.Int)
+	d_of_x := new(big.Int)
+	b_of_x := new(big.Int)
+
+	for _i, pos := range positions {
+		i := i0 + _i
+		x := f.pow(G2, pos)
+		x_to_the_steps := f.pow(x, steps)
+		mbranch1, err := verify_branch(proof.Root, uint(pos.Uint64()), branches[i*3])
+		if err != nil {
+			chErr <- err
+			return
+		}
+		p_of_x.SetBytes(mbranch1[:32])
+		d_of_x.SetBytes(mbranch1[32:64])
+		b_of_x.SetBytes(mbranch1[64:])
+
+		mbranch2, err := verify_branch(proof.Root, uint(s1.Mod(s0.Add(pos, skips), precision).Uint64()), branches[i*3+1])
+		if err != nil {
+			chErr <- err
+			return
+		}
+		p_of_g1x.SetBytes(mbranch2[:32])
+
+		l_of_x, err := verify_branch(proof.LRoot, uint(pos.Uint64()), branches[i*3+2])
+		if err != nil {
+			chErr <- err
+			return
+		}
+
+		//zvalue := f.div(f.sub(f.pow(x, steps), one), f.sub(x, last_step_position))
+		//	k_of_x := f.eval_poly_at(constants_mini_polynomial, f.pow(x, skips2))
+		// Check transition constraints C(P(x)) = Z(x) * D(x)
+		// (p_of_g1x - p_of_x ** 3 - k_of_x - zvalue * d_of_x) % modulus == 0
+		s1.Sub(s0.Sub(p_of_g1x, s3.Exp(p_of_x, THREE, nil)), f.eval_poly_at(constants_mini_polynomial, f.pow(x, skips2)))
+		if s3.Mod(s2.Sub(s1, s0.Mul(f.div(f.sub(f.pow(x, steps), ONE), f.sub(x, last_step_position)), d_of_x)), f.modulus).Cmp(ZERO) != 0 {
+			chErr <- fmt.Errorf("transition constraint violation")
+			return
+		}
+
+		// Check boundary constraints B(x) * Q(x) + I(x) = P(x)
+		// Check if (p_of_x - b_of_x * f.eval_poly_at(zeropoly2, x) - f.eval_poly_at(interpolant, x)) % modulus == 0
+		if s2.Mod(s1.Sub(s0.Sub(p_of_x, s3.Mul(b_of_x, f.eval_poly_at(zeropoly2, x))), f.eval_poly_at(interpolant, x)), f.modulus).Cmp(ZERO) != 0 {
+			chErr <- fmt.Errorf("boundary constraint violation")
+			return
+		}
+
+		// Check correctness of the linear combination, if (l_of_x - d_of_x - k1 * p_of_x - k2 * p_of_x * x_to_the_steps - k3 * b_of_x - k4 * b_of_x * x_to_the_steps) % modulus == 0
+		s2.Sub(s1.Sub(s0.Sub(BytesToBig(l_of_x), d_of_x), s3.Mul(k1, p_of_x)), s3.Mul(k2, s2.Mul(p_of_x, x_to_the_steps)))
+		s1.Sub(s0.Sub(s2, s3.Mul(k3, b_of_x)), s3.Mul(k4, s2.Mul(b_of_x, x_to_the_steps)))
+		if s2.Mod(s1, f.modulus).Cmp(ZERO) != 0 {
+			chErr <- fmt.Errorf("linear combination violation")
+			return
+		}
+	}
+	chErr <- nil
+}
+
 // Verifies a STARK, using verify_low_degree_proof for each component in the STARK proof
 func VerifyProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*big.Int, proof *Proof) error {
 	// Verifies the low-degree proofs
+	start0 := time.Now()
 	var wg sync.WaitGroup
 	var output *big.Int
+
+	// (v1) Compute MiMC output
+	//  input: inp, steps, round_constants
+	//  output: output
 	wg.Add(1)
 	go func() {
+		start := time.Now()
 		output = f.MiMC(inp, steps, round_constants)
 		wg.Done()
+		fmt.Printf("(v1) Computed MiMC output %s [%s => %s]\n", output, time.Since(start), time.Since(start0))
 	}()
-
-	m_root := proof.Root
-	l_root := proof.LRoot
-	branches := proof.Branches
 
 	ext_factor := big.NewInt(int64(extension_factor))
 	precision := new(big.Int).Mul(steps, ext_factor)
-
-	// Get (steps)th root of unity
+	skips2 := f.div(steps, big.NewInt(int64(len(round_constants))))
+	extf := new(big.Int).Mul(ext_factor, skips2)
 	G2 := f.pow(SEVEN, f.div(new(big.Int).Sub(f.modulus, ONE), precision))
 	skips := f.div(precision, steps)
-	errV := verify_low_degree_proof(f, l_root, G2, proof.Child, int(steps.Int64()*2), ext_factor)
+	last_step_position := f.pow(G2, new(big.Int).Mul(new(big.Int).Sub(steps, ONE), skips))
+
+	var positions []*big.Int
+	var errPos error
+	var k1, k2, k3, k4 *big.Int
+	// Performs the spot checks
+	k1 = blake(append(proof.Root, byte(1)))
+	k2 = blake(append(proof.Root, byte(2)))
+	k3 = blake(append(proof.Root, byte(3)))
+	k4 = blake(append(proof.Root, byte(4)))
+	positions, errPos = get_pseudorandom_indices(f, proof.LRoot, precision, spot_check_security_factor, int64(extension_factor))
+	if errPos != nil {
+		return errPos
+	}
+
+	// (v2)  Gets the polynomial representing the round constants
+	//  input: G2, extension_factor, round_constants
+	//  output: constants_mini_polynomial
+	var constants_mini_polynomial []*big.Int
+	wg.Add(1)
+	go func() {
+		start := time.Now()
+		constants_mini_polynomial = f.fft(round_constants, f.pow(G2, extf), true)
+		wg.Done()
+		fmt.Printf("(v2) Computed constants_mini_polynomial [%s => %s]\n", time.Since(start), time.Since(start0))
+	}()
+
+	// (v3) verify_low_degree_proof
+	//  input: proof
+	//  output: errV
+	var errV error
+	wg.Add(1)
+	go func() {
+		start := time.Now()
+		errV = verify_low_degree_proof(f, proof.LRoot, G2, proof.Child, int(steps.Int64()*2), ext_factor)
+		wg.Done()
+		fmt.Printf("(v3) verify_low_degree_proof [%s => %s]\n", time.Since(start), time.Since(start0))
+	}()
+	wg.Wait()
+
+	// check (v3) errV
 	if errV != nil {
 		return errV
 	}
 
-	// Gets the polynomial representing the round constants
-	skips2 := f.div(steps, big.NewInt(int64(len(round_constants))))
-
-	extf := new(big.Int).Mul(ext_factor, skips2)
-	constants_mini_polynomial := f.fft(round_constants, f.pow(G2, extf), true)
-
-	start := time.Now()
-	// Performs the spot checks
-	k1 := blake(append(m_root, byte(1)))
-	k2 := blake(append(m_root, byte(2)))
-	k3 := blake(append(m_root, byte(3)))
-	k4 := blake(append(m_root, byte(4)))
-	positions, err := get_pseudorandom_indices(f, l_root, precision, spot_check_security_factor, int64(extension_factor))
-	if err != nil {
-		return err
-	}
-	t := new(big.Int).Sub(steps, ONE)
-	t.Mul(t, skips)
-	last_step_position := f.pow(G2, t)
-
+	// (v4) Verified consistency checks
+	//  input: proof, last_step_position, output from (v1), positions, k1-k4, constants_mini_polynomial from (v2),
+	//  output: chErr
 	nev := len(positions)
-	njmp := min_iterations(nev, -1)
-
-	// Wait for output from f.MiMC
-	wg.Wait()
-	var finalErr error
-	finalErr = nil
-
-	for j := 0; j < nev; j += njmp {
-		wg.Add(1)
-		go func(i0 int, i1 int) {
-			if i1 > nev {
-				i1 = nev
-			}
-			//	start0 := time.Now()
-			s0 := new(big.Int)
-			s1 := new(big.Int)
-			s2 := new(big.Int)
-			s3 := new(big.Int)
-			p_of_x := new(big.Int)
-			p_of_g1x := new(big.Int)
-			d_of_x := new(big.Int)
-			b_of_x := new(big.Int)
-
-			for i := i0; i < i1; i++ {
-				pos := positions[i]
-				x := f.pow(G2, pos)
-				x_to_the_steps := f.pow(x, steps)
-				mbranch1, err := verify_branch(m_root, uint(pos.Uint64()), branches[i*3])
-				if err != nil {
-					finalErr = err
-				}
-				s0.Add(pos, skips)
-				s1.Mod(s0, precision)
-				mbranch2, err := verify_branch(m_root, uint(s1.Uint64()), branches[i*3+1])
-				if err != nil {
-					finalErr = err
-				}
-				l_of_x, err := verify_branch(l_root, uint(pos.Uint64()), branches[i*3+2])
-				if err != nil {
-					finalErr = err
-				}
-
-				p_of_x.SetBytes(mbranch1[:32])
-				p_of_g1x.SetBytes(mbranch2[:32])
-				d_of_x.SetBytes(mbranch1[32:64])
-				b_of_x.SetBytes(mbranch1[64:])
-
-				//zvalue := f.div(f.sub(f.pow(x, steps), one), f.sub(x, last_step_position))
-				//	k_of_x := f.eval_poly_at(constants_mini_polynomial, f.pow(x, skips2))
-
-				// Check transition constraints C(P(x)) = Z(x) * D(x)
-				// (p_of_g1x - p_of_x ** 3 - k_of_x - zvalue * d_of_x) % modulus == 0
-				s3.Exp(p_of_x, THREE, nil)
-				s0.Sub(p_of_g1x, s3)
-				s1.Sub(s0, f.eval_poly_at(constants_mini_polynomial, f.pow(x, skips2)))
-				s0.Mul(f.div(f.sub(f.pow(x, steps), ONE), f.sub(x, last_step_position)), d_of_x)
-				s2.Sub(s1, s0)
-				if s3.Mod(s2, f.modulus).Cmp(ZERO) != 0 {
-					finalErr = fmt.Errorf("transition constraint violation")
-				}
-
-				// Check boundary constraints B(x) * Q(x) + I(x) = P(x)
-				interpolant := f.lagrange_interp_2(create_poly2(ONE, last_step_position), create_poly2(inp, output))
-				zeropoly2 := f.mul_polys(create_poly2(NEGONE, ONE), create_poly2(new(big.Int).Mul(NEGONE, last_step_position), ONE))
-				// Check if (p_of_x - b_of_x * f.eval_poly_at(zeropoly2, x) - f.eval_poly_at(interpolant, x)) % modulus == 0
-				s3.Mul(b_of_x, f.eval_poly_at(zeropoly2, x))
-				s0.Sub(p_of_x, s3)
-				s1.Sub(s0, f.eval_poly_at(interpolant, x))
-				if s2.Mod(s1, f.modulus).Cmp(ZERO) != 0 {
-					finalErr = fmt.Errorf("boundary constraint violation")
-				}
-				// Check correctness of the linear combination
-				// Check if (l_of_x - d_of_x - k1 * p_of_x - k2 * p_of_x * x_to_the_steps - k3 * b_of_x - k4 * b_of_x * x_to_the_steps) % modulus == 0
-				s0.Sub(BytesToBig(l_of_x), d_of_x)
-				s3.Mul(k1, p_of_x)
-				s1.Sub(s0, s3)
-				s2.Mul(p_of_x, x_to_the_steps)
-				s3.Mul(k2, s2)
-				s2.Sub(s1, s3)
-				s3.Mul(k3, b_of_x)
-				s0.Sub(s2, s3)
-				s2.Mul(b_of_x, x_to_the_steps)
-				s3.Mul(k4, s2)
-				s1.Sub(s0, s3)
-				s2.Mod(s1, f.modulus)
-				if s2.Cmp(ZERO) != 0 {
-					finalErr = fmt.Errorf("linear combination violation")
-				}
-			}
-			wg.Done()
-			// fmt.Printf("   consistency checks %d %d -- [%s]\n", i0, i1, time.Since(start0))
-		}(j, j+njmp)
+	njmp := 5
+	buf := nev / njmp
+	chErr := make(chan error, buf)
+	interpolant := f.lagrange_interp_2(create_poly2(ONE, last_step_position), create_poly2(inp, output))
+	zeropoly2 := f.mul_polys(create_poly2(NEGONE, ONE), create_poly2(new(big.Int).Mul(NEGONE, last_step_position), ONE))
+	for i := 0; i < nev; i += njmp {
+		i1 := i + njmp
+		if i1 > nev {
+			i1 = nev
+		}
+		go verify_consistency_checks(chErr, proof, G2, steps, precision, last_step_position, skips, skips2, zeropoly2, interpolant, constants_mini_polynomial, k1, k2, k3, k4, positions[i:i1], proof.Branches, i)
 	}
 
-	wg.Wait()
-	fmt.Printf("Verified %d consistency checks [%s]\n", spot_check_security_factor, time.Since(start))
+	// check (v4) chErr
+	for i := 0; i < buf; i++ {
+		err := <-chErr
+		if err != nil {
+			return err
+		}
+	}
 
-	return finalErr
+	fmt.Printf("(v4) Verified %d consistency checks [%s]\n", spot_check_security_factor, time.Since(start0))
+	return nil
 }
 
-// Verify an FRI proof
+// Verify an FRI proof - used in (v3)
 func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *big.Int, components []*FriComponent, maxdeg_plus_1 int, exclude_multiples_of *big.Int) error {
 	// Calculate which root of unity we're working with
 	start := time.Now()
 	testval := new(big.Int).Set(root_of_unity)
 	roudeg := new(big.Int).Set(ONE)
+	t := new(big.Int)
 	for testval.Cmp(ONE) != 0 {
-		roudeg.Mul(roudeg, TWO)
+		roudeg.Set(t.Mul(roudeg, TWO))
 		// testval = (testval * testval) % modulus
-		testval.Mul(testval, testval)
-		testval.Mod(testval, f.modulus)
+		testval.Mod(t.Mul(testval, testval), f.modulus)
 	}
 
 	// Powers of the given root of unity 1, p, p**2, p**3 such that p**4 = 1
@@ -173,20 +190,12 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 	quartic_roots_of_unity[0] = new(big.Int).Set(ONE)
 	quartic_roots_of_unity[1] = f.pow(root_of_unity, new(big.Int).Div(roudeg, FOUR))
 	quartic_roots_of_unity[2] = f.pow(root_of_unity, new(big.Int).Div(roudeg, TWO))
-	t := new(big.Int).Mul(roudeg, THREE)
-	t.Div(t, FOUR)
-	quartic_roots_of_unity[3] = f.pow(root_of_unity, t)
-	if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-
-		fmt.Printf("  verify_low_degree_proof setup [%s]\n", time.Since(start))
-	}
+	quartic_roots_of_unity[3] = f.pow(root_of_unity, new(big.Int).Div(new(big.Int).Mul(roudeg, THREE), FOUR))
 	// Verify the recursive components of the proof
 	errc := make(chan error, len(components))
 	for lvl, component := range components[0 : len(components)-1] {
 		go func(level int, comp *FriComponent, merkle_root []byte, root_of_unity *big.Int, maxdeg_plus_1 int, roudeg *big.Int) {
-			start = time.Now()
-
-			root2 := comp.Root
+			startlevel := time.Now()
 			branches := comp.Branches
 
 			// Calculate the pseudo-random x coordinate
@@ -195,7 +204,7 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 
 			// Calculate the pseudo-randomly sampled y indices
 			modulus := new(big.Int).Div(roudeg, FOUR)
-			ys, err := get_pseudorandom_indices(f, root2, modulus, 40, exclude_multiples_of.Int64())
+			ys, err := get_pseudorandom_indices(f, comp.Root, modulus, 40, exclude_multiples_of.Int64())
 			if err != nil {
 				fmt.Printf("Failure get_pseudorandom_indices \n")
 				errc <- err
@@ -231,7 +240,7 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 
 				rows = append(rows, row)
 
-				c, err := verify_branch_int(root2, uint(y.Int64()), branches[i][0])
+				c, err := verify_branch_int(comp.Root, uint(y.Int64()), branches[i][0])
 				if err != nil {
 					errc <- err
 					fmt.Printf("Failure VERIFY_BRANCH_INT 2\n")
@@ -249,12 +258,10 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 				q := f.eval_quartic(p, special_x)
 				if q.Cmp(c) != 0 {
 					fmt.Printf("Failure QUARTIC MISMATCH\n")
-
 					errc <- fmt.Errorf("quartic mismatch")
 				}
 			}
-			fmt.Printf("Verifying degree (%d) <= %d [%s]\n", level, maxdeg_plus_1, time.Since(start))
-
+			fmt.Printf("Verifying degree (%d) <= %d [%s]\n", level, maxdeg_plus_1, time.Since(startlevel))
 			errc <- nil
 		}(lvl, component, merkle_root, root_of_unity, maxdeg_plus_1, roudeg)
 		// Update constants to check the next proof
@@ -278,6 +285,7 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 		if bytes.Compare(mtree[1], merkle_root) != 0 {
 			fmt.Printf("incorrect merkle root Failure\n")
 			errc <- fmt.Errorf("incorrect merkle root")
+			return
 		}
 
 		// Check the degree of the data
@@ -303,7 +311,6 @@ func verify_low_degree_proof(f *PrimeField, merkle_root []byte, root_of_unity *b
 			xs = append(xs, powers[x])
 			ys = append(ys, BytesToBig(comp.Values[x]))
 		}
-
 		poly := f.lagrange_interp(xs, ys)
 		for _, x := range pts[maxdeg_plus_1:] {
 			q := f.eval_poly_at(poly, powers[x])

@@ -22,46 +22,90 @@ The following builds a STARK proof and verifies it:
 
 ```
 $ go test -run Stark
-Converted round constants into a polynomial and low-degree extended it [6.602174ms]
-Computational trace output (8192 steps) [11.172972ms]
-Converted computational steps into a polynomial [41.382899ms]
-Extended it [258.199748ms]
-Computed C(P, K) polynomial [93.196225ms]
-Computed D polynomial [127.13986ms]
-Computed d_evaluations [12.423474ms]
-Computed inv_z2_evaluations [158.935997ms]
-Computed b_evaluations, MerkleTree input [29.315647ms]
-Computed hash root [41.135149ms] mtree[1] d494ec987dc1dfb66522849ed16f0a3b0bf57bc943e855ee6222ccc51436bb60
-Computed random linear combination [23.022553ms]
-Proving 65536 values are degree <= 16384 [341.929872ms] 2e3a9f04e27b5eadd61aee10e8c4523ca5af563962178195cb949ba23f3d2732
-Proving 16384 values are degree <= 4096 [87.520293ms] ea9e14a3f0bf6b6da3ede789cf3436c2d02aa18d21e9e9a01e1bc17ea711a122
-Proving 4096 values are degree <= 1024 [23.644541ms] 8d5ebb56cbe7a657638ac3801e63d94d627b3340fdbf135f61656c228f57ac0a
-Proving 1024 values are degree <= 256 [8.809678ms] 81a40695570df55f6a19fdbad697d07b8ef7fdbc064afd3fa8751aa0ac6974f4
-Proving 256 values are degree <= 64 [2.63234ms] 8ac23b191bb8ed3442a7e1d33fdae1028dc21af5c584550d6ae738e413a65309
-Produced FRI proof
-STARK computed in 1.290008954s
+(0) Setup: 182.571µs
+(3) Converted round constants into a polynomial and low-degree extended it [4.4276ms => 4.666351ms]
+(2a) Computational trace output (8192 steps) [10.389452ms => 10.700385ms]
+(2b) Converted computational steps into a polynomial [46.674131ms => 57.400872ms]
+(1) Powers of the higher-order root of unity [95.682927ms => 95.948311ms]
+(2c) Extended it into p_evaluations [270.383988ms => 327.829209ms]
+(5) Computed C(P, K) polynomial [101.310373ms => 430.617625ms]
+(4a) Computed i_evaluations [130.134393ms]
+(4b) Computed inv_z2_evaluations [116.376872ms => 574.446241ms]
+(6a) Computed z_num_inv [95.80993ms => 670.283144ms]
+(6b) Computed d_evaluations [24.213509ms => 694.804971ms]
+(7) Computed b_evaluations, MerkleTree input [46.881766ms => 741.716265ms]
+(8) Compute mtree[1] d494ec987dc1dfb66522849ed16f0a3b0bf57bc943e855ee6222ccc51436bb60 [28.393291ms => 770.132013ms]
+(9) Computed random linear combination [45.518049ms => 815.66801ms]
+(10) Merkelized l_evaluations, Setup Spot check positions [72.14833ms => 842.298166ms]
+  (16384-2) Merkelize values [26.727857ms]
+  (16384-1a) Calculate the set of x coordinates [39.512573ms]
+  (16384-1b) Setup xsets, ysets [11.181406ms]
+  (16384-1c) Computed x_polys [265.800292ms]
+  (16384-3) Computed column [11.267897ms]
+  (4096-2) Merkelize values [5.331177ms]
+  (16384-5) Computed branches [5.767438ms]
+  (4096-1a) Calculate the set of x coordinates [8.182335ms]
+  (4096-1b) Setup xsets, ysets [3.21678ms]
+  (4096-1c) Computed x_polys [61.048019ms]
+  (4096-3) Computed column [2.577056ms]
+  (1024-2) Merkelize values [1.313805ms]
+  (4096-5) Computed branches [1.670755ms]
+  (1024-1a) Calculate the set of x coordinates [2.211452ms]
+  (1024-1b) Setup xsets, ysets [741.27µs]
+  (1024-1c) Computed x_polys [19.82389ms]
+  (1024-3) Computed column [1.377656ms]
+  (256-2) Merkelize values [346.107µs]
+  (1024-5) Computed branches [570.049µs]
+  (256-1a) Calculate the set of x coordinates [685.173µs]
+  (256-1b) Setup xsets, ysets [216.53µs]
+  (256-1c) Computed x_polys [6.863071ms]
+  (256-3) Computed column [780.8µs]
+  (64-2) Merkelize values [89.412µs]
+  (256-5) Computed branches [246.714µs]
+  (64-1a) Calculate the set of x coordinates [143.897µs]
+  (64-1b) Setup xsets, ysets [58.229µs]
+  (64-1c) Computed x_polys [1.628562ms]
+  (64-3) Computed column [183.513µs]
+  (64-4) Computed prove_low_degree [10.174µs]
+  (64-5) Computed branches [618.981µs]
+  (256-4) Computed prove_low_degree [6.3084ms]
+  (1024-4) Computed prove_low_degree [14.94238ms]
+  (4096-4) Computed prove_low_degree [39.224187ms]
+  (16384-4) Computed prove_low_degree [114.427395ms]
+(11) Finished prove_low_degree [442.40318ms => 1.258112961s]
+(12) Finalized branches [896.618µs => 1.259015913s]
+STARK computed in 1.259029107s
 
 STARK Proof size:  layer 0: 110322 bytes |  layer 1: 97122 bytes |  layer 2: 83922 bytes |  layer 3: 70722 bytes |  layer 4: 57480 bytes |  layer 5: 2120 bytes |
 Approx proof length: 156238 bytes (branches), 421688 bytes (FRI proof), 577926 bytes (total)
 ------
-Verifying degree <= 16 [3.001955ms]
-Verifying degree (0) <= 16384 [4.436105ms]
-Verifying degree (1) <= 4096 [5.71256ms]
-Verifying degree (2) <= 1024 [5.877444ms]
-Verifying degree (4) <= 64 [6.438763ms]
-Verifying degree (3) <= 256 [6.505624ms]
-FRI proof verified [6.518201ms]
-MIMC computed in 12.752269ms
-
-Verified 80 consistency checks [10.308633ms]
-STARK verified in 19.121431ms
+Verifying degree <= 16 [1.04213ms]
+(v2) Computed constants_mini_polynomial [305.206µs => 1.547463ms]
+Verifying degree (2) <= 1024 [2.131157ms]
+Verifying degree (3) <= 256 [1.976066ms]
+Verifying degree (4) <= 64 [1.899876ms]
+Verifying degree (1) <= 4096 [2.397724ms]
+Verifying degree (0) <= 16384 [7.027816ms]
+FRI proof verified [8.540764ms]
+(v3) verify_low_degree_proof [8.590437ms => 8.735205ms]
+(v1) Computed MiMC output 95224774355499767951968048714566316597785297695903697235130434363122555476056 [10.786366ms => 10.852428ms]
+(v4) Verified 80 consistency checks [14.339083ms]
+STARK verified in 14.36828ms
 PASS
-ok	github.com/wolkdb/plasma/stark	1.334s
+ok  	github.com/wolkdb/plasma/stark	1.296s
 ```
 
-## Performance
+## Parallelization Performance
 
 Basic parallelization (go routines, WaitGroups) of the proof generation and verification have been added, with a first pass review of big.Int usage.  
+
+![Proof Parallelization](https://github.com/wolkdb/deepblockchains/blob/master/stark/flows/proof-goroutine-flow.png "Proof Parallelization")
+
+![FRI Parallelization](https://github.com/wolkdb/deepblockchains/blob/master/stark/flows/fri-goroutine-flow.png "FRI Parallelization")
+
+![Verification Parallelization](https://github.com/wolkdb/deepblockchains/blob/master/stark/flows/verify-goroutine-flow.png "Verification Parallelization")
+
+
 
 ### 2014 MacBook Pro 2.2 GHz Intel Core i7 (8 "logical" cores)
 

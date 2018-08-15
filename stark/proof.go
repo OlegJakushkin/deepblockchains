@@ -105,7 +105,8 @@ func constrained_poly(ch_c_of_p_evaluations chan IndexedInt, ch_z_num_evaluation
 	}
 }
 
-func constrained_poly2(ch_d_evaluations chan IndexedInt, c_of_p_evaluations []*big.Int, z_den_evaluations []*big.Int, z_num_inv []*big.Int, i0 int) {
+// used in (6b)
+func compute_d_evaluations(ch_d_evaluations chan IndexedInt, c_of_p_evaluations []*big.Int, z_den_evaluations []*big.Int, z_num_inv []*big.Int, i0 int) {
 	f, _ := NewPrimeField(nil)
 	t0 := new(big.Int)
 	t1 := new(big.Int)
@@ -115,7 +116,8 @@ func constrained_poly2(ch_d_evaluations chan IndexedInt, c_of_p_evaluations []*b
 	}
 }
 
-func b_eval(ch_b_evaluations chan IndexedInt, ch_merkle_inp chan IndexedBytes, p_evaluations []*big.Int, d_evaluations []*big.Int, i_evaluations []*big.Int, inv_z2_evaluations []*big.Int, i0 int) {
+// used in (7)
+func compute_b_evaluations(ch_b_evaluations chan IndexedInt, ch_merkle_inp chan IndexedBytes, p_evaluations []*big.Int, d_evaluations []*big.Int, i_evaluations []*big.Int, inv_z2_evaluations []*big.Int, i0 int) {
 	b := new(big.Int)
 	t := new(big.Int)
 	f, _ := NewPrimeField(nil)
@@ -127,7 +129,8 @@ func b_eval(ch_b_evaluations chan IndexedInt, ch_merkle_inp chan IndexedBytes, p
 	}
 }
 
-func leval(ch_l_evaluations chan IndexedBytes, b_evaluations []*big.Int, p_evaluations []*big.Int, d_evaluations []*big.Int, powers []*big.Int, k1 *big.Int, k2 *big.Int, k3 *big.Int, k4 *big.Int, i0 int) {
+// used in (9)
+func compute_random_linear_combination(ch_l_evaluations chan IndexedBytes, b_evaluations []*big.Int, p_evaluations []*big.Int, d_evaluations []*big.Int, powers []*big.Int, k1 *big.Int, k2 *big.Int, k3 *big.Int, k4 *big.Int, i0 int) {
 	f, _ := NewPrimeField(nil)
 	t0 := new(big.Int)
 	t1 := new(big.Int)
@@ -148,10 +151,31 @@ func leval(ch_l_evaluations chan IndexedBytes, b_evaluations []*big.Int, p_evalu
 	}
 }
 
+// used in (12)
+func compute_branches(ch_branches chan IndexedBranchSet, mtree [][]byte, l_mtree [][]byte, positions []*big.Int, skips *big.Int, precision *big.Int, i0 int) {
+	t0 := new(big.Int)
+	t1 := new(big.Int)
+	for _i, pos := range positions {
+		i := i0 + _i
+		branchset := make([][][]byte, 3)
+		branchset[0] = mk_branch(mtree, pos.Int64())
+		branchset[1] = mk_branch(mtree, t1.Mod(t0.Add(pos, skips), precision).Int64())
+		branchset[2] = mk_branch(l_mtree, pos.Int64())
+		ch_branches <- IndexedBranchSet{idx: i, data: branchset}
+	}
+}
+
+func compute_column(ch_column chan IndexedBytes, x_polys [][]*big.Int, special_x *big.Int, i0 int) {
+	f, _ := NewPrimeField(nil)
+	for _i, x_poly := range x_polys {
+		ch_column <- IndexedBytes{idx: i0 + _i, data: BigToBytes(f.eval_quartic(x_poly, special_x))}
+	}
+}
+
 // Generate a STARK for a MIMC calculation
 func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*big.Int) (resultProof *Proof, err error) {
 	// (0) setup variables, check constraints
-	start := time.Now()
+	start0 := time.Now()
 	two_power_32 := new(big.Int).Exp(TWO, THIRTYTWO, nil)
 	extension_factor_big := big.NewInt(int64(extension_factor))
 	precision := new(big.Int).Mul(steps, extension_factor_big)
@@ -180,9 +204,7 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 	// Root of unity such that x^steps=1
 	skips := new(big.Int).Div(precision, steps)
 	G1 := f.pow(G2, skips)
-	if time.Since(start).Seconds() > MIN_SECONDS_BENCHMARK {
-		fmt.Printf("Setup: %s\n", time.Since(start))
-	}
+	fmt.Printf("(0) Setup: %s\n", time.Since(start0))
 	var vg sync.WaitGroup
 	var xs []*big.Int
 	var last_step_position *big.Int
@@ -192,6 +214,7 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 	// outputs: xs, powers
 	vg.Add(1)
 	go func() {
+		start := time.Now()
 		xs = get_power_cycle(G2, f.modulus)
 		last_step_position = xs[(int(steps.Int64())-1)*extension_factor]
 		vg.Done()
@@ -201,6 +224,7 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 		for i := 0; i < nprecision; i++ {
 			powers[i+1] = new(big.Int).Mod(t0.Mul(powers[i], G2_to_the_steps), f.modulus)
 		}
+		fmt.Printf("(1) Powers of the higher-order root of unity [%s => %s]\n", time.Since(start), time.Since(start0))
 	}()
 
 	// (2) Generate the computational trace, Interpolate the computational trace into a polynomial P, with each step along a successive power of G1
@@ -222,22 +246,21 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 			computational_trace[i] = new(big.Int).Mod(t0.Add(t1.Exp(computational_trace[i-1], THREE, nil), round_constants[(i-1)%len(round_constants)]), f.modulus)
 		}
 		output = computational_trace[len(computational_trace)-1]
-		fmt.Printf("Computational trace output (%d steps) [%s]\n", steps, time.Since(start))
+		fmt.Printf("(2a) Computational trace output (%d steps) [%s => %s]\n", steps, time.Since(start), time.Since(start0))
 
 		start = time.Now()
 		computational_trace_polynomial = f.fft(computational_trace, G1, true)
-		fmt.Printf("Converted computational steps into a polynomial [%s]\n", time.Since(start))
+		fmt.Printf("(2b) Converted computational steps into a polynomial [%s => %s]\n", time.Since(start), time.Since(start0))
 
 		start = time.Now()
 		p_evaluations = f.fft(computational_trace_polynomial, G2, false)
-		fmt.Printf("Extended it [%s]\n", time.Since(start))
+		fmt.Printf("(2c) Extended it into p_evaluations [%s => %s]\n", time.Since(start), time.Since(start0))
 		vg.Done()
 	}()
 
 	// (3) Convert round constants into a polynomial
 	// inputs: round_constants
-	//  outputs: constants_mini_polynomial, constants_mini_extension, constants_polynomial
-	constants_polynomial := make([]*big.Int, steps.Uint64())
+	//  outputs: constants_mini_polynomial, constants_mini_extension
 	var constants_mini_polynomial []*big.Int
 	var constants_mini_extension []*big.Int
 	vg.Add(1)
@@ -245,28 +268,18 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 		start := time.Now()
 		constants_mini_polynomial = f.fft(round_constants, f.pow(G1, skips2), true)
 		constants_mini_extension = f.fft(constants_mini_polynomial, f.pow(G2, skips2), false)
-		t := new(big.Int)
-		ti := new(big.Int)
-		for i := int64(0); i < steps.Int64(); i++ {
-			ti.SetInt64(i)
-			if t.Mod(ti, skips2).Cmp(ZERO) == 0 {
-				constants_polynomial[i] = ZERO
-			} else {
-				constants_polynomial[i] = constants_mini_polynomial[t.Div(ti, skips2).Uint64()]
-			}
-		}
-		fmt.Printf("Converted round constants into a polynomial and low-degree extended it [%s]\n", time.Since(start))
+		fmt.Printf("(3) Converted round constants into a polynomial and low-degree extended it [%s => %s]\n", time.Since(start), time.Since(start0))
 		vg.Done()
 	}()
 
 	// waiting for (1)+(2)+(3)
 	vg.Wait()
 
-	// (4a) Compute interpolant of ((1, input), (x_atlast_step, output))
+	// (4) Compute interpolant of ((1, input), (x_atlast_step, output))
 	// input: xs from (1), output from (2)
-	// output: i_evaluations, inpa
+	// output: i_evaluations, inv_z2_evaluations
 	var wg sync.WaitGroup
-	start = time.Now()
+	start4 := time.Now()
 	zeropoly2 := f.mul_polys([]*big.Int{NEGONE, ONE}, []*big.Int{new(big.Int).Neg(last_step_position), ONE})
 	interpolant := f.lagrange_interp_2([]*big.Int{ONE, last_step_position}, []*big.Int{inp, output})
 	nxs := len(xs)
@@ -282,15 +295,25 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 		}
 		go interpolant_inpa(ch_i_evaluations, ch_inpa, xs[i:i1], interpolant, zeropoly2, i)
 	}
-	for i := 0; i < nxs; i++ {
-		i_eval := <-ch_i_evaluations
-		i_evaluations[i_eval.idx] = i_eval.data
-		a := <-ch_inpa
-		inpa[a.idx] = a.data
-	}
+	var inv_z2_evaluations []*big.Int
+	wg.Add(1)
+	go func() {
+		for i := 0; i < nxs; i++ {
+			i_eval := <-ch_i_evaluations
+			i_evaluations[i_eval.idx] = i_eval.data
+			a := <-ch_inpa
+			inpa[a.idx] = a.data
+		}
+		fmt.Printf("(4a) Computed i_evaluations [%s]\n", time.Since(start4))
 
-	// (4b) Create the composed polynomial such that C(P(x), P(g1*x), K(x)) = P(g1*x) - P(x)**3 - K(x)
-	//  inputs: p_evaluations, constants_mini_extension
+		start4 = time.Now()
+		inv_z2_evaluations = f.multi_inv(inpa)
+		fmt.Printf("(4b) Computed inv_z2_evaluations [%s => %s]\n", time.Since(start4), time.Since(start0))
+		wg.Done()
+	}()
+
+	// (5) Create  composed polynomial such that C(P(x), P(g1*x), K(x)) = P(g1*x) - P(x)**3 - K(x)
+	//  inputs: p_evaluations from (2), constants_mini_extension from (3)
 	//  outputs: c_of_p_evaluations, z_num_evaluations, z_den_evaluations
 	dprecision := min_iterations(nprecision, 3)
 	c_of_p_evaluations := make([]*big.Int, nprecision)
@@ -300,59 +323,58 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 	ch_c_of_p_evaluations := make(chan IndexedInt, nprecision)
 	ch_z_num_evaluations := make(chan IndexedInt, nprecision)
 	ch_z_den_evaluations := make(chan IndexedInt, nprecision)
-	for i := int(0); i < nprecision; i += dprecision {
-		i1 := i + dprecision
-		if i1 > nprecision {
-			i1 = nprecision
+	wg.Add(1)
+	go func() {
+		start := time.Now()
+		for i := int(0); i < nprecision; i += dprecision {
+			i1 := i + dprecision
+			if i1 > nprecision {
+				i1 = nprecision
+			}
+			go constrained_poly(ch_c_of_p_evaluations, ch_z_num_evaluations, ch_z_den_evaluations, p_evaluations, xs, constants_mini_extension, last_step_position, steps.Int64(), precision.Int64(), i, i1)
 		}
-		go constrained_poly(ch_c_of_p_evaluations, ch_z_num_evaluations, ch_z_den_evaluations, p_evaluations, xs, constants_mini_extension, last_step_position, steps.Int64(), precision.Int64(), i, i1)
-	}
+		for i := 0; i < nprecision; i++ {
+			d := <-ch_c_of_p_evaluations
+			c_of_p_evaluations[d.idx] = d.data
+			d = <-ch_z_num_evaluations
+			z_num_evaluations[d.idx] = d.data
+			d = <-ch_z_den_evaluations
+			z_den_evaluations[d.idx] = d.data
+		}
+		fmt.Printf("(5) Computed C(P, K) polynomial [%s => %s]\n", time.Since(start), time.Since(start0))
+		wg.Done()
+	}()
 
-	for i := 0; i < nprecision; i++ {
-		d := <-ch_c_of_p_evaluations
-		c_of_p_evaluations[d.idx] = d.data
-		d = <-ch_z_num_evaluations
-		z_num_evaluations[d.idx] = d.data
-		d = <-ch_z_den_evaluations
-		z_den_evaluations[d.idx] = d.data
-	}
+	// waiting for (4)+(5)
+	wg.Wait()
 
-	fmt.Printf("Computed C(P, K) polynomial [%s]\n", time.Since(start))
-
-	// (5) Compute D(x) = C(P(x), P(g1*x), K(x)) / Z(x) ;;;; Z(x) = (x^steps - 1) / (x - x_atlast_step)
-	// inputs: z_num_evaluations
+	// (6) Compute D(x) = C(P(x), P(g1*x), K(x)) / Z(x) ;;;; Z(x) = (x^steps - 1) / (x - x_atlast_step)
+	// inputs: z_num_evaluations from (5)
 	// outputs: z_num_inv
-	start = time.Now()
+	start := time.Now()
 	z_num_inv := f.multi_inv(z_num_evaluations)
+	fmt.Printf("(6a) Computed z_num_inv [%s => %s]\n", time.Since(start), time.Since(start0))
 
-	fmt.Printf("Computed D polynomial [%s]\n", time.Since(start))
+	// (6b) Compute d_evaluations
+	// inputs: c_of_p_evaluations, z_den_evaluations, z_num_inv; output: d_evaluations
 	d_evaluations := make([]*big.Int, nprecision)
 	ch_d_evaluations := make(chan IndexedInt, nprecision)
-
-	// inputs: c_of_p_evaluations, z_den_evaluations, z_num_inv; output: d_evaluations
 	start = time.Now()
 	for i := int(0); i < nprecision; i += dprecision {
 		i1 := i + dprecision
 		if i1 > nprecision {
 			i1 = nprecision
 		}
-		go constrained_poly2(ch_d_evaluations, c_of_p_evaluations[i:i1], z_den_evaluations[i:i1], z_num_inv[i:i1], i)
+		go compute_d_evaluations(ch_d_evaluations, c_of_p_evaluations[i:i1], z_den_evaluations[i:i1], z_num_inv[i:i1], i)
 	}
 	for i := 0; i < nprecision; i++ {
 		d := <-ch_d_evaluations
 		d_evaluations[d.idx] = d.data
 	}
-	fmt.Printf("Computed d_evaluations [%s]\n", time.Since(start))
+	fmt.Printf("(6b) Computed d_evaluations [%s => %s]\n", time.Since(start), time.Since(start0))
 
-	// (7)
-	// input: inpa from (4a)
-	// output: inv_z2_evaluations
-	start = time.Now()
-	inv_z2_evaluations := f.multi_inv(inpa)
-	fmt.Printf("Computed inv_z2_evaluations [%s]\n", time.Since(start))
-
-	// (8) Compute b_evaluations and Merkle Root
-	// input: inv_z2_evaluations from (7); p_evaluations from (2), d_evaluations from (5)
+	// (7) Compute b_evaluations and Merkle Root
+	// input: inv_z2_evaluations from (4b); p_evaluations from (2), d_evaluations from (6b)
 	// output: merkle_inp, b_evaluations
 	start = time.Now()
 	nev := len(inv_z2_evaluations)
@@ -366,10 +388,8 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 		if i1 > nev {
 			i1 = nev
 		}
-		go b_eval(ch_b_evaluations, ch_merkle_inp, p_evaluations[i:i1], d_evaluations[i:i1], i_evaluations[i:i1], inv_z2_evaluations[i:i1], i)
+		go compute_b_evaluations(ch_b_evaluations, ch_merkle_inp, p_evaluations[i:i1], d_evaluations[i:i1], i_evaluations[i:i1], inv_z2_evaluations[i:i1], i)
 	}
-	wg.Wait()
-	fmt.Printf("Computed b_evaluations, MerkleTree input [%s] \n", time.Since(start))
 
 	for i := 0; i < nev; i++ {
 		d := <-ch_b_evaluations
@@ -377,8 +397,10 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 		d0 := <-ch_merkle_inp
 		merkle_inp[d0.idx] = d0.data
 	}
-	// (9)
-	// input: merkle_inp from (8)
+	fmt.Printf("(7) Computed b_evaluations, MerkleTree input [%s => %s] \n", time.Since(start), time.Since(start0))
+
+	// (8) Compute merkle tree
+	// input: merkle_inp from (7)
 	// output: mtree[1], k1, k2, k3, k4
 	start = time.Now()
 	mtree := merkelize(merkle_inp)
@@ -386,10 +408,10 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 	k2 := blake(append(mtree[1][0:32], byte(0x2)))
 	k3 := blake(append(mtree[1][0:32], byte(0x3)))
 	k4 := blake(append(mtree[1][0:32], byte(0x4)))
-	fmt.Printf("Computed hash root [%s] mtree[1] %x\n", time.Since(start), mtree[1])
+	fmt.Printf("(8) Compute mtree[1] %x [%s => %s]\n", mtree[1], time.Since(start), time.Since(start0))
 
-	// (10) Based on the hashes of P, D and B, we select a random linear combination of P * x^steps, P, B * x^steps, B and D, and prove the low-degreeness of that, instead of proving the low-degreeness of P, B and D separately
-	// input: d_evaluations from (5), p_evaluations from (2), b_evaluations from (8) + k1, k2, k3, k4 from (9)
+	// (9) Based on the hashes of P, D and B, we select a random linear combination of P * x^steps, P, B * x^steps, B and D, and prove the low-degreeness of that, instead of proving the low-degreeness of P, B and D separately
+	// input: d_evaluations from (6), p_evaluations from (2), b_evaluations from (8) + k1, k2, k3, k4 from (9)
 	// output: l_evaluations
 	// Compute the linear combination. We dont even both calculating it in coefficient form; we just compute the evaluations
 	start = time.Now()
@@ -401,37 +423,52 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 		if i1 > nprecision {
 			i1 = nprecision
 		}
-		go leval(ch_l_evaluations, b_evaluations[i:i1], p_evaluations[i:i1], d_evaluations[i:i1], powers, k1, k2, k3, k4, i)
+		go compute_random_linear_combination(ch_l_evaluations, b_evaluations[i:i1], p_evaluations[i:i1], d_evaluations[i:i1], powers, k1, k2, k3, k4, i)
 	}
 
 	for i := 0; i < nprecision; i++ {
 		d := <-ch_l_evaluations
 		l_evaluations[d.idx] = d.data
 	}
-	fmt.Printf("Computed random linear combination [%s]\n", time.Since(start))
-	// (11) Do some spot checks of the Merkle tree at pseudo-random coordinates, excluding multiples of `extension_factor`
+	fmt.Printf("(9) Computed random linear combination [%s => %s]\n", time.Since(start), time.Since(start0))
+
+	// (10) Do some spot checks of the Merkle tree at pseudo-random coordinates, excluding multiples of `extension_factor`
 	//      Setup proof structure with the Merkle roots of P and D
 	// input: l_evaluations from (10)
 	// output: l_mtree/p.LRoot, positions
-	l_mtree := merkelize(l_evaluations)
-	start = time.Now()
-	positions, err := get_pseudorandom_indices(f, l_mtree[1], precision, spot_check_security_factor, int64(extension_factor))
-	if err != nil {
-		return resultProof, err
-	}
 	var p Proof
-	p.Root = mtree[1]    // Merkle Root
-	p.LRoot = l_mtree[1] // Merkle Root
+	p.Root = mtree[1] // Merkle Root
 	p.Child = make([]*FriComponent, 0)
+	var l_mtree [][]byte
+	var positions []*big.Int
+	var err2 error
 	wg.Add(1)
 	go func() {
-		err = prove_low_degree(&p, f, l_evaluations, G2, steps.Int64()*2, extension_factor_big)
+		l_mtree = merkelize(l_evaluations)
+		positions, err2 = get_pseudorandom_indices(f, l_mtree[1], precision, spot_check_security_factor, int64(extension_factor))
+		p.LRoot = l_mtree[1] // Merkle Root
 		wg.Done()
+		fmt.Printf("(10) Merkelized l_evaluations, Setup Spot check positions [%s => %s]\n", time.Since(start), time.Since(start0))
 	}()
 
+	// (11) Recursive prove_low_degree proofs!
+	// input: l_evaluations
+	// output: p.Child[:]
+	wg.Add(1)
+	go func() {
+		start := time.Now()
+		err = prove_low_degree(&p, f, l_evaluations, G2, steps.Int64()*2, extension_factor_big)
+		wg.Done()
+		fmt.Printf("(11) Finished prove_low_degree [%s => %s]\n", time.Since(start), time.Since(start0))
+	}()
+
+	// waiting for (10)+(11)
+	wg.Wait()
+
 	// (12) Setup proof structure wit the spot check Merkle proofs and low-degree proofs of P and D
-	// input: l_mtree+positions from (11), mtree from (9)
-	// output: p.branches
+	// input: l_mtree+positions from (11), mtree from (10)
+	// output: p.Branches
+	start = time.Now()
 	nev = len(positions)
 	njmp = min_iterations(nev, 3)
 	branches := make([][][]byte, len(positions)*3)
@@ -445,36 +482,13 @@ func NewProof(f *PrimeField, inp *big.Int, steps *big.Int, round_constants []*bi
 	}
 	for i := 0; i < nev; i++ {
 		d := <-ch_branches
-		i := d.idx
-		branchset := d.data
-		branches[i*3+0] = branchset[0]
-		branches[i*3+1] = branchset[1]
-		branches[i*3+2] = branchset[2]
+		branches[d.idx*3+0] = d.data[0]
+		branches[d.idx*3+1] = d.data[1]
+		branches[d.idx*3+2] = d.data[2]
 	}
-
 	p.Branches = branches
-	wg.Wait()
+	fmt.Printf("(12) Finalized branches [%s => %s]\n", time.Since(start), time.Since(start0))
 	return &p, err
-}
-
-func compute_branches(ch_branches chan IndexedBranchSet, mtree [][]byte, l_mtree [][]byte, positions []*big.Int, skips *big.Int, precision *big.Int, i0 int) {
-	t0 := new(big.Int)
-	t1 := new(big.Int)
-	for _i, pos := range positions {
-		i := i0 + _i
-		branchset := make([][][]byte, 3)
-		branchset[0] = mk_branch(mtree, pos.Int64())
-		branchset[1] = mk_branch(mtree, t1.Mod(t0.Add(pos, skips), precision).Int64())
-		branchset[2] = mk_branch(l_mtree, pos.Int64())
-		ch_branches <- IndexedBranchSet{idx: i, data: branchset}
-	}
-}
-
-func compute_column(ch_column chan IndexedBytes, x_polys [][]*big.Int, special_x *big.Int, i0 int) {
-	f, _ := NewPrimeField(nil)
-	for _i, x_poly := range x_polys {
-		ch_column <- IndexedBytes{idx: i0 + _i, data: BigToBytes(f.eval_quartic(x_poly, special_x))}
-	}
 }
 
 /*
@@ -482,7 +496,6 @@ func compute_column(ch_column chan IndexedBytes, x_polys [][]*big.Int, special_x
  We use maxdeg+1 instead of maxdeg because it's more mathematically convenient in this case.
 */
 func prove_low_degree(p *Proof, f *PrimeField, values [][]byte, root_of_unity *big.Int, maxdeg_plus_1 int64, exclude_multiples_of *big.Int) (err error) {
-	start := time.Now()
 	var wg sync.WaitGroup
 
 	// If the degree we are checking for is less than or equal to 32, use the polynomial directly as a proof
@@ -495,14 +508,19 @@ func prove_low_degree(p *Proof, f *PrimeField, values [][]byte, root_of_unity *b
 	}
 
 	// (1) Calculate the set of x coordinates
-	// input: root_of_unity
-	// output: xs
+	// input: root_of_unity, values
+	// output: xs, x_polys
 	var xs []*big.Int
 	var xsets [][]*big.Int
 	var ysets [][]*big.Int
+	var x_polys [][]*big.Int
 	wg.Add(1)
 	go func() {
+		start := time.Now()
 		xs = get_power_cycle(root_of_unity, f.modulus)
+		fmt.Printf("  (%d-1a) Calculate the set of x coordinates [%s]\n", maxdeg_plus_1, time.Since(start))
+
+		start = time.Now()
 		quarter_len := len(xs) / 4
 		xsets = make([][]*big.Int, quarter_len)
 		ysets = make([][]*big.Int, quarter_len)
@@ -514,19 +532,26 @@ func prove_low_degree(p *Proof, f *PrimeField, values [][]byte, root_of_unity *b
 				ysets[i][j] = BytesToBig(values[i+quarter_len*j])
 			}
 		}
+		fmt.Printf("  (%d-1b) Setup xsets, ysets [%s]\n", maxdeg_plus_1, time.Since(start))
+
+		start = time.Now()
+		x_polys = f.multi_interp_4(xsets, ysets)
+		fmt.Printf("  (%d-1c) Computed x_polys [%s]\n", maxdeg_plus_1, time.Since(start))
 		wg.Done()
 	}()
 
-	// (2) Put the values into a Merkle tree. This is the root that the proof will be checked against
-	// input: values
+	// (2) Merkelize values - This is the root that the proof will be checked against
+	// input: values from function input
 	// output: special_x
 	var special_x *big.Int
 	var m [][]byte
 	wg.Add(1)
 	go func() {
+		start := time.Now()
 		m = merkelize(values)
 		special_x = new(big.Int).Mod(new(big.Int).SetBytes(m[1]), f.modulus)
 		wg.Done()
+		fmt.Printf("  (%d-2) Merkelize values [%s]\n", maxdeg_plus_1, time.Since(start))
 	}()
 
 	// wait for (1)+(2)
@@ -534,11 +559,12 @@ func prove_low_degree(p *Proof, f *PrimeField, values [][]byte, root_of_unity *b
 	if len(values) != len(xs) {
 		return fmt.Errorf("Incorrect input length of xs")
 	}
+
 	// (3) Calculate the "column" at that x coordinate (see https://vitalik.ca/general/2017/11/22/starks_part_2.html)
 	// We calculate the column by Lagrange-interpolating each row, and not directly from the polynomial, as this is more efficient
-	// input: xsets+ysets from (1), special_x from (2)
+	// input: x_polys from (1), special_x from (2)
 	// output: column
-	x_polys := f.multi_interp_4(xsets, ysets)
+	start := time.Now()
 	nev := len(x_polys)
 	column := make([][]byte, nev)
 	ch_column := make(chan IndexedBytes, nev)
@@ -550,49 +576,60 @@ func prove_low_degree(p *Proof, f *PrimeField, values [][]byte, root_of_unity *b
 		}
 		go compute_column(ch_column, x_polys[i:i1], special_x, i)
 	}
-
 	for i := 0; i < nev; i++ {
 		d := <-ch_column
 		column[d.idx] = d.data
 	}
+	fmt.Printf("  (%d-3) Computed column [%s]\n", maxdeg_plus_1, time.Since(start))
 
-	// (4)
+	// (4) Build NEXT component of the proof
 	// input: column from (3)
-	// output: m2
-	m2 := merkelize(column)
-
-	// (5) Pseudo-randomly select y indices to sample
-	// input: m2 from (4)
-	// output: ys
-	ys, err := get_pseudorandom_indices(f, m2[1], big.NewInt(int64(nev)), 40, int64(exclude_multiples_of.Int64()))
-	if err != nil {
-		return err
-	}
-
-	// (6) Compute the Merkle branches for the values in the polynomial and the column
-	// input: m from (2), m2 from (4), ys from (5)
-	// output: branches
-	branches := make([][][][]byte, 0)
-	for _, y := range ys {
-		b := make([][][]byte, 5)
-		b[0] = mk_branch(m2, y.Int64())
-		for j := 0; j < 4; j++ {
-			b[j+1] = mk_branch(m, y.Int64()+int64(j*len(xs)/4))
-		}
-		branches = append(branches, b)
-	}
-	fmt.Printf("Proving %d values are degree <= %d [%s] %x\n", len(values), maxdeg_plus_1, time.Since(start), m2[1])
-
-	// (9) Build component of the proof
-	// input: m2 from (4), branches from (6)
-	// output: component
+	// output: p.Child.{Branches, Root}
 	var component FriComponent
-	component.Root = m2[1]
-	component.Branches = branches
 	p.Child = append(p.Child, &component)
-	err = prove_low_degree(p, f, column, f.pow(root_of_unity, FOUR), maxdeg_plus_1/4, exclude_multiples_of)
+
+	wg.Add(1)
+	go func() {
+		start := time.Now()
+		err = prove_low_degree(p, f, column, f.pow(root_of_unity, FOUR), maxdeg_plus_1/4, exclude_multiples_of)
+		wg.Done()
+		fmt.Printf("  (%d-4) Computed prove_low_degree [%s]\n", maxdeg_plus_1, time.Since(start))
+	}()
 	if err != nil {
 		return err
 	}
+
+	// (5) Merkelize column and Pseudo-randomly select y indices to sample
+	// input: column from (3)
+	// output: component.{Branches, Root}
+	var err2 error
+	var m2 [][]byte
+	var ys []*big.Int
+	branches := make([][][][]byte, 0)
+	wg.Add(1)
+	go func() {
+		start := time.Now()
+		m2 = merkelize(column)
+		component.Root = m2[1]
+
+		ys, err2 = get_pseudorandom_indices(f, m2[1], big.NewInt(int64(nev)), 40, int64(exclude_multiples_of.Int64()))
+		for _, y := range ys {
+			b := make([][][]byte, 5)
+			b[0] = mk_branch(m2, y.Int64())
+			for j := 0; j < 4; j++ {
+				b[j+1] = mk_branch(m, y.Int64()+int64(j*len(xs)/4))
+			}
+			branches = append(branches, b)
+		}
+		wg.Done()
+		component.Branches = branches
+		fmt.Printf("  (%d-5) Computed branches [%s]\n", maxdeg_plus_1, time.Since(start))
+	}()
+	if err2 != nil {
+		return err2
+	}
+
+	// waiting for (4)+(5)
+	wg.Wait()
 	return nil
 }
