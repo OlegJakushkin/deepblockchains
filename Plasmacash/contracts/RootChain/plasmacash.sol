@@ -23,9 +23,9 @@
 
 pragma solidity ^0.4.24;
 
-import './TxHash.sol';
-import "./PriorityQueue.sol";
-import "./SparseMerkle.sol";
+import "../Libraries/TxHash.sol";
+import "../DataStructures/PriorityQueue.sol";
+import "../DataStructures/SparseMerkle.sol";
 
 contract PlasmaCash {
 
@@ -105,7 +105,7 @@ contract PlasmaCash {
         uint64 denomination = depositBalance[tokenID];
         require(uint64(uint256(keccak256(abi.encodePacked(msg.sender, _depositIndex, denomination))) % (2 ** 64)) == tokenID);
         require(denomination > 0);
-        exitTX memory exitx = exitTX(0, currentBlkNum, msg.sender, block.timestamp + 60, msg.value);
+        exitTX memory exitx = exitTX(0, 1, msg.sender, block.timestamp + 60, msg.value); //depositExit validation uniquely checked by exitx.txblk1
         addExitToQueue(tokenID, _depositIndex, exitx);
         emit StartExit(msg.sender, _depositIndex, denomination, tokenID, block.timestamp);
     }
@@ -116,15 +116,16 @@ contract PlasmaCash {
         TxHash.TXN memory tx2 = txBytes2.getTx();
         TxHash.TXN memory tx1 = txBytes1.getTx();
         require(tx2.Recipient == msg.sender, "unauth exit");
-        require(tx1.TokenId == tokenID && tx2.TokenId == tokenID, "tokenID mismatch");
+        require(tx2.PrevOwner == tx1.Recipient, "invalid signer");
+        require(tx1.TokenID == tx2.TokenID && tx2.TokenID == tokenID, "tokenID mismatch");
         require(txBytes1.verifyTX(), "tx1 sig failure");
         require(txBytes2.verifyTX(), "tx2 sig failure");
         require(blk1 < blk2, "Invlid Exit order");
         require(blk1 == tx2.PrevBlock, "potential challengeBetween");
 
         //checkMembership(leaf, root, tokenID, proof);
-        require(smt.checkMembership(keccak256(txBytes1),childChain[blk1],tx1.TokenId, proof1), "tx1 non member");
-        require(smt.checkMembership(keccak256(txBytes2),childChain[blk2],tx2.TokenId, proof2), "tx2 non member");
+        require(smt.checkMembership(keccak256(txBytes1),childChain[blk1],tx1.TokenID, proof1), "tx1 non member");
+        require(smt.checkMembership(keccak256(txBytes2),childChain[blk2],tx2.TokenID, proof2), "tx2 non member");
 
         //StartExit. bond(currently not required)
         exitTX memory exitx = exitTX(blk1, blk2, msg.sender, block.timestamp + 60, msg.value);
@@ -135,18 +136,55 @@ contract PlasmaCash {
 
 
     // @ dev Submit proof that the exiting uid has been spent on the child chain either between the prevTx and tx or after the exit has been triggered. proving that the owner of the exiting uid is illegitimate
-    function challenge(uint64 tokenID, bytes txBytes, bytes proof, uint64 blk) public {
-        exitTX memory exitx = exits[tokenID];
-        require((blk > exitx.txblk2) || (exitx.txblk1 < blk && blk < exitx.txblk2), "invalid txn bound");
+    function challenge(uint64 tID, bytes txBytes, bytes proof, uint64 blk) public {
+
         TxHash.TXN memory tx = txBytes.getTx();
-        require(tx.TokenId == tokenID, "tokenID mismatch");
+        tokenID = tx.TokenID;
+        exitTX memory exitx = exits[tokenID];
+        require(exitx.exitableTS > 0, "exitTX not exist!");
+
+        if (blk > exitx.txblk2) {
+          if (exitx.txblk1 == 0) {
+            require(tx.PrevBlock != 0, "Self-challenge prohibited");
+            require(tx.PrevOwner == exitx.exitor, "Invalid challengeAfter cond");
+          }else{
+            require(tx.PrevOwner == exitx.exitor && tx.PrevBlock == exitx.txblk2, "Invalid challengeAfter cond");  // outer range double spend
+          }
+
+        }else if (exitx.txblk1 < blk && blk < exitx.txblk2){
+          require(tx.Recipient != exitx.exitor, "Invlid challengeBetween cond"); // any legitimate challengeBetween will invalidate transaction after blk
+        }
+
         require(txBytes.verifyTX(), "sig failure");
-        require(smt.checkMembership(keccak256(txBytes),childChain[blk],tx.TokenId, proof), "non member");
+        require(smt.checkMembership(keccak256(txBytes),childChain[blk],tx.TokenID, proof), "non member");
 
         //valid challenge, exitx removed from queue
         delete exits[tokenID];
-        Challenge(msg.sender, tx.TokenId, block.timestamp);
+        Challenge(msg.sender, tx.TokenID, block.timestamp);
         //TODO: claim bond attached to exit
+    }
+
+    // @ dev challenge a pending exit by proving that transitions are invalid
+    function challengeBefore(uint64 tokenID, bytes txBytes1, bytes txBytes2, bytes proof1, bytes proof2, uint64 blk1, uint64 blk2) public {
+        exitTX memory exitx = exits[tokenID];
+        require(exitx.exitableTS > 0, "exitTX not exist!");
+        TxHash.TXN memory challengeTx2 = txBytes2.getTx();
+        TxHash.TXN memory challengeTx1 = txBytes1.getTx();
+        require(challengeTx1.TokenID == challengeTx2.TokenID && challengeTx2.TokenID == tokenID, "tokenID mismatch");
+        require(challengeTx1.Recipient != challengeTx2.PrevOwner, "Invlid challengeBefore cond");
+        require(txBytes1.verifyTX(), "challengeTx1 sig failure");
+        require(txBytes2.verifyTX(), "challengeTx2 sig failure");
+        require(blk1 == challengeTx2.PrevBlock, "jump sequence");
+        require(blk1 < blk2 && blk2 <= exitTX.txblk1, "Invlid transitions order");
+
+        //checkMembership(leaf, root, tokenID, proof);
+        require(smt.checkMembership(keccak256(txBytes1),childChain[blk1],challengeTx1.TokenID, proof1), "challengeTx1 non member");
+        require(smt.checkMembership(keccak256(txBytes2),childChain[blk2],challengeTx2.TokenID, proof2), "challengeTx2 non member");
+
+        //valid challenge, exitx removed from queue
+        delete exits[tokenID];
+        Challenge(msg.sender, tx.TokenID, block.timestamp);
+        //TODO: initate new exit afterchallengeBefore
     }
 
 

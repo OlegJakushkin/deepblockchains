@@ -37,7 +37,7 @@ library TxHash {
     using RLPEncode for bytes;
 
     struct TXN {
-        uint64  TokenId;
+        uint64  TokenID;
         uint64  Denomination;
         uint64  DepositIndex;
         uint64  PrevBlock;
@@ -153,7 +153,7 @@ library TxHash {
     function getTx(bytes memory txBytes) internal view returns (TXN memory) {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         TXN memory txn;
-        txn.TokenId =  uint64(rlpTx[0].toUint());
+        txn.TokenID =  uint64(rlpTx[0].toUint());
         txn.Denomination =  uint64(rlpTx[1].toUint());
         txn.DepositIndex =  uint64(rlpTx[2].toUint());
         txn.PrevBlock =  uint64(rlpTx[3].toUint());
