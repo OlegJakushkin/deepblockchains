@@ -41,6 +41,28 @@
         "type": "function"
     },
     {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "txBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "proof",
+                "type": "bytes"
+            },
+            {
+                "name": "blk",
+                "type": "uint64"
+            }
+        ],
+        "name": "challenge",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "constant": true,
         "inputs": [],
         "name": "currentDepositIndex",
@@ -78,44 +100,6 @@
         "type": "function"
     },
     {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "tokenID",
-                "type": "uint64"
-            },
-            {
-                "name": "txBytes1",
-                "type": "bytes"
-            },
-            {
-                "name": "txBytes2",
-                "type": "bytes"
-            },
-            {
-                "name": "proof1",
-                "type": "bytes"
-            },
-            {
-                "name": "proof2",
-                "type": "bytes"
-            },
-            {
-                "name": "blk1",
-                "type": "uint64"
-            },
-            {
-                "name": "blk2",
-                "type": "uint64"
-            }
-        ],
-        "name": "startExit",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "constant": true,
         "inputs": [
             {
@@ -138,7 +122,15 @@
         "constant": false,
         "inputs": [
             {
-                "name": "tokenID",
+                "name": "prevTxBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "prevProof",
+                "type": "bytes"
+            },
+            {
+                "name": "prevBlk",
                 "type": "uint64"
             },
             {
@@ -154,7 +146,41 @@
                 "type": "uint64"
             }
         ],
-        "name": "challenge",
+        "name": "startExit",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "txBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "proof",
+                "type": "bytes"
+            },
+            {
+                "name": "blk",
+                "type": "uint64"
+            },
+            {
+                "name": "faultyTxBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "faultyProof",
+                "type": "bytes"
+            },
+            {
+                "name": "faultyBlk",
+                "type": "uint64"
+            }
+        ],
+        "name": "challengeBefore",
         "outputs": [],
         "payable": false,
         "stateMutability": "nonpayable",
@@ -217,11 +243,11 @@
         "name": "exits",
         "outputs": [
             {
-                "name": "txblk1",
+                "name": "prevBlk",
                 "type": "uint64"
             },
             {
-                "name": "txblk2",
+                "name": "exitBlk",
                 "type": "uint64"
             },
             {
