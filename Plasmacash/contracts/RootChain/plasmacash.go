@@ -1,20 +1,3 @@
-/** Copyright 2018 Wolk Inc.
-* This file is part of the Plasmacash library.
-*
-* The plasmacash library is free software: you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* The Plasmacash library is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public License
-* along with the plasmacash library. If not, see <http://www.gnu.org/licenses/>.
- */
-
 // Code generated - DO NOT EDIT.
 // This file is a generated binding and any manual changes will be lost.
 
@@ -28,12 +11,12 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
+	"github.com/wolkdb/plasma/pethchain/types"
 )
 
 // PlasmaCashABI is the input ABI used to generate the binding from.
-const PlasmaCashABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNextExit\",\"outputs\":[{\"name\":\"depID\",\"type\":\"uint64\"},{\"name\":\"tokenID\",\"type\":\"uint64\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentDepositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_depositIndex\",\"type\":\"uint64\"}],\"name\":\"depositExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"kill\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"tokenID\",\"type\":\"uint64\"},{\"name\":\"txBytes1\",\"type\":\"bytes\"},{\"name\":\"txBytes2\",\"type\":\"bytes\"},{\"name\":\"proof1\",\"type\":\"bytes\"},{\"name\":\"proof2\",\"type\":\"bytes\"},{\"name\":\"blk1\",\"type\":\"uint64\"},{\"name\":\"blk2\",\"type\":\"uint64\"}],\"name\":\"startExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"childChain\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"tokenID\",\"type\":\"uint64\"},{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"challenge\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentBlkNum\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"authority\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"finalizeExits\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"exits\",\"outputs\":[{\"name\":\"txblk1\",\"type\":\"uint64\"},{\"name\":\"txblk2\",\"type\":\"uint64\"},{\"name\":\"exitor\",\"type\":\"address\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"name\":\"bond\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blkRoot\",\"type\":\"bytes32\"},{\"name\":\"_blknum\",\"type\":\"uint64\"}],\"name\":\"submitBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_depositor\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"}],\"name\":\"Deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"StartExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_rootHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"name\":\"_blknum\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_currentDepositIndex\",\"type\":\"uint64\"}],\"name\":\"PublishedBlock\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"FinalizedExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_challenger\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"Challenge\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"depID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"tokenID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"name\":\"CurrtentExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"cuurrentTS\",\"type\":\"uint256\"}],\"name\":\"ExitTime\",\"type\":\"event\"}]"
+const PlasmaCashABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNextExit\",\"outputs\":[{\"name\":\"depID\",\"type\":\"uint64\"},{\"name\":\"tokenID\",\"type\":\"uint64\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"challenge\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentDepositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_depositIndex\",\"type\":\"uint64\"}],\"name\":\"depositExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"kill\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"childChain\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"prevTxBytes\",\"type\":\"bytes\"},{\"name\":\"prevProof\",\"type\":\"bytes\"},{\"name\":\"prevBlk\",\"type\":\"uint64\"},{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"startExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"},{\"name\":\"faultyTxBytes\",\"type\":\"bytes\"},{\"name\":\"faultyProof\",\"type\":\"bytes\"},{\"name\":\"faultyBlk\",\"type\":\"uint64\"}],\"name\":\"challengeBefore\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentBlkNum\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"authority\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"finalizeExits\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"exits\",\"outputs\":[{\"name\":\"prevBlk\",\"type\":\"uint64\"},{\"name\":\"exitBlk\",\"type\":\"uint64\"},{\"name\":\"exitor\",\"type\":\"address\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"name\":\"bond\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blkRoot\",\"type\":\"bytes32\"},{\"name\":\"_blknum\",\"type\":\"uint64\"}],\"name\":\"submitBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_depositor\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"}],\"name\":\"Deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"StartExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_rootHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"name\":\"_blknum\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_currentDepositIndex\",\"type\":\"uint64\"}],\"name\":\"PublishedBlock\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"FinalizedExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_challenger\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"Challenge\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"depID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"tokenID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"name\":\"CurrtentExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"cuurrentTS\",\"type\":\"uint256\"}],\"name\":\"ExitTime\",\"type\":\"event\"}]"
 
 // PlasmaCash is an auto generated Go binding around an Ethereum contract.
 type PlasmaCash struct {
@@ -335,17 +318,17 @@ func (_PlasmaCash *PlasmaCashCallerSession) DepositIndex(arg0 uint64) (uint64, e
 
 // Exits is a free data retrieval call binding the contract method 0xd6463d40.
 //
-// Solidity: function exits( uint64) constant returns(txblk1 uint64, txblk2 uint64, exitor address, exitableTS uint256, bond uint256)
+// Solidity: function exits( uint64) constant returns(prevBlk uint64, exitBlk uint64, exitor address, exitableTS uint256, bond uint256)
 func (_PlasmaCash *PlasmaCashCaller) Exits(opts *bind.CallOpts, arg0 uint64) (struct {
-	Txblk1     uint64
-	Txblk2     uint64
+	PrevBlk    uint64
+	ExitBlk    uint64
 	Exitor     common.Address
 	ExitableTS *big.Int
 	Bond       *big.Int
 }, error) {
 	ret := new(struct {
-		Txblk1     uint64
-		Txblk2     uint64
+		PrevBlk    uint64
+		ExitBlk    uint64
 		Exitor     common.Address
 		ExitableTS *big.Int
 		Bond       *big.Int
@@ -357,10 +340,10 @@ func (_PlasmaCash *PlasmaCashCaller) Exits(opts *bind.CallOpts, arg0 uint64) (st
 
 // Exits is a free data retrieval call binding the contract method 0xd6463d40.
 //
-// Solidity: function exits( uint64) constant returns(txblk1 uint64, txblk2 uint64, exitor address, exitableTS uint256, bond uint256)
+// Solidity: function exits( uint64) constant returns(prevBlk uint64, exitBlk uint64, exitor address, exitableTS uint256, bond uint256)
 func (_PlasmaCash *PlasmaCashSession) Exits(arg0 uint64) (struct {
-	Txblk1     uint64
-	Txblk2     uint64
+	PrevBlk    uint64
+	ExitBlk    uint64
 	Exitor     common.Address
 	ExitableTS *big.Int
 	Bond       *big.Int
@@ -370,10 +353,10 @@ func (_PlasmaCash *PlasmaCashSession) Exits(arg0 uint64) (struct {
 
 // Exits is a free data retrieval call binding the contract method 0xd6463d40.
 //
-// Solidity: function exits( uint64) constant returns(txblk1 uint64, txblk2 uint64, exitor address, exitableTS uint256, bond uint256)
+// Solidity: function exits( uint64) constant returns(prevBlk uint64, exitBlk uint64, exitor address, exitableTS uint256, bond uint256)
 func (_PlasmaCash *PlasmaCashCallerSession) Exits(arg0 uint64) (struct {
-	Txblk1     uint64
-	Txblk2     uint64
+	PrevBlk    uint64
+	ExitBlk    uint64
 	Exitor     common.Address
 	ExitableTS *big.Int
 	Bond       *big.Int
@@ -421,25 +404,46 @@ func (_PlasmaCash *PlasmaCashCallerSession) GetNextExit() (struct {
 	return _PlasmaCash.Contract.GetNextExit(&_PlasmaCash.CallOpts)
 }
 
-// Challenge is a paid mutator transaction binding the contract method 0x6b68497e.
+// Challenge is a paid mutator transaction binding the contract method 0x31ddf645.
 //
-// Solidity: function challenge(tokenID uint64, txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) Challenge(opts *bind.TransactOpts, tokenID uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "challenge", tokenID, txBytes, proof, blk)
+// Solidity: function challenge(txBytes bytes, proof bytes, blk uint64) returns()
+func (_PlasmaCash *PlasmaCashTransactor) Challenge(opts *bind.TransactOpts, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.contract.Transact(opts, "challenge", txBytes, proof, blk)
 }
 
-// Challenge is a paid mutator transaction binding the contract method 0x6b68497e.
+// Challenge is a paid mutator transaction binding the contract method 0x31ddf645.
 //
-// Solidity: function challenge(tokenID uint64, txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) Challenge(tokenID uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Challenge(&_PlasmaCash.TransactOpts, tokenID, txBytes, proof, blk)
+// Solidity: function challenge(txBytes bytes, proof bytes, blk uint64) returns()
+func (_PlasmaCash *PlasmaCashSession) Challenge(txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.Contract.Challenge(&_PlasmaCash.TransactOpts, txBytes, proof, blk)
 }
 
-// Challenge is a paid mutator transaction binding the contract method 0x6b68497e.
+// Challenge is a paid mutator transaction binding the contract method 0x31ddf645.
 //
-// Solidity: function challenge(tokenID uint64, txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) Challenge(tokenID uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Challenge(&_PlasmaCash.TransactOpts, tokenID, txBytes, proof, blk)
+// Solidity: function challenge(txBytes bytes, proof bytes, blk uint64) returns()
+func (_PlasmaCash *PlasmaCashTransactorSession) Challenge(txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.Contract.Challenge(&_PlasmaCash.TransactOpts, txBytes, proof, blk)
+}
+
+// ChallengeBefore is a paid mutator transaction binding the contract method 0x743098a7.
+//
+// Solidity: function challengeBefore(txBytes bytes, proof bytes, blk uint64, faultyTxBytes bytes, faultyProof bytes, faultyBlk uint64) returns()
+func (_PlasmaCash *PlasmaCashTransactor) ChallengeBefore(opts *bind.TransactOpts, txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.contract.Transact(opts, "challengeBefore", txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
+}
+
+// ChallengeBefore is a paid mutator transaction binding the contract method 0x743098a7.
+//
+// Solidity: function challengeBefore(txBytes bytes, proof bytes, blk uint64, faultyTxBytes bytes, faultyProof bytes, faultyBlk uint64) returns()
+func (_PlasmaCash *PlasmaCashSession) ChallengeBefore(txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.Contract.ChallengeBefore(&_PlasmaCash.TransactOpts, txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
+}
+
+// ChallengeBefore is a paid mutator transaction binding the contract method 0x743098a7.
+//
+// Solidity: function challengeBefore(txBytes bytes, proof bytes, blk uint64, faultyTxBytes bytes, faultyProof bytes, faultyBlk uint64) returns()
+func (_PlasmaCash *PlasmaCashTransactorSession) ChallengeBefore(txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.Contract.ChallengeBefore(&_PlasmaCash.TransactOpts, txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd0e30db0.
@@ -526,25 +530,25 @@ func (_PlasmaCash *PlasmaCashTransactorSession) Kill() (*types.Transaction, erro
 	return _PlasmaCash.Contract.Kill(&_PlasmaCash.TransactOpts)
 }
 
-// StartExit is a paid mutator transaction binding the contract method 0x5f10a47c.
+// StartExit is a paid mutator transaction binding the contract method 0x6a1473ee.
 //
-// Solidity: function startExit(tokenID uint64, txBytes1 bytes, txBytes2 bytes, proof1 bytes, proof2 bytes, blk1 uint64, blk2 uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) StartExit(opts *bind.TransactOpts, tokenID uint64, txBytes1 []byte, txBytes2 []byte, proof1 []byte, proof2 []byte, blk1 uint64, blk2 uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "startExit", tokenID, txBytes1, txBytes2, proof1, proof2, blk1, blk2)
+// Solidity: function startExit(prevTxBytes bytes, prevProof bytes, prevBlk uint64, txBytes bytes, proof bytes, blk uint64) returns()
+func (_PlasmaCash *PlasmaCashTransactor) StartExit(opts *bind.TransactOpts, prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.contract.Transact(opts, "startExit", prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
 }
 
-// StartExit is a paid mutator transaction binding the contract method 0x5f10a47c.
+// StartExit is a paid mutator transaction binding the contract method 0x6a1473ee.
 //
-// Solidity: function startExit(tokenID uint64, txBytes1 bytes, txBytes2 bytes, proof1 bytes, proof2 bytes, blk1 uint64, blk2 uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) StartExit(tokenID uint64, txBytes1 []byte, txBytes2 []byte, proof1 []byte, proof2 []byte, blk1 uint64, blk2 uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.StartExit(&_PlasmaCash.TransactOpts, tokenID, txBytes1, txBytes2, proof1, proof2, blk1, blk2)
+// Solidity: function startExit(prevTxBytes bytes, prevProof bytes, prevBlk uint64, txBytes bytes, proof bytes, blk uint64) returns()
+func (_PlasmaCash *PlasmaCashSession) StartExit(prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.Contract.StartExit(&_PlasmaCash.TransactOpts, prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
 }
 
-// StartExit is a paid mutator transaction binding the contract method 0x5f10a47c.
+// StartExit is a paid mutator transaction binding the contract method 0x6a1473ee.
 //
-// Solidity: function startExit(tokenID uint64, txBytes1 bytes, txBytes2 bytes, proof1 bytes, proof2 bytes, blk1 uint64, blk2 uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) StartExit(tokenID uint64, txBytes1 []byte, txBytes2 []byte, proof1 []byte, proof2 []byte, blk1 uint64, blk2 uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.StartExit(&_PlasmaCash.TransactOpts, tokenID, txBytes1, txBytes2, proof1, proof2, blk1, blk2)
+// Solidity: function startExit(prevTxBytes bytes, prevProof bytes, prevBlk uint64, txBytes bytes, proof bytes, blk uint64) returns()
+func (_PlasmaCash *PlasmaCashTransactorSession) StartExit(prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _PlasmaCash.Contract.StartExit(&_PlasmaCash.TransactOpts, prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
 }
 
 // SubmitBlock is a paid mutator transaction binding the contract method 0xefcfd072.

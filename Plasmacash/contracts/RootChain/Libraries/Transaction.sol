@@ -17,7 +17,7 @@
 
 
 /**
- * @title  TxHash for PlasmaCash
+ * @title  Transaction for PlasmaCash
  * @author Michael Chung (michael@wolk.com)
  * @dev Library for verifying plasmacash txn.
  */
@@ -28,7 +28,7 @@ import './RLP.sol';
 import './RLPEncode.sol';
 import './ECRecovery.sol';
 
-library TxHash {
+library Transaction {
 
     using RLP for bytes;
     using RLP for RLP.RLPItem;
@@ -36,8 +36,8 @@ library TxHash {
     using RLPEncode for bytes[];
     using RLPEncode for bytes;
 
-    struct TXN {
-        uint64  TokenId;
+    struct PlasmaTx {
+        uint64  TokenID;
         uint64  Denomination;
         uint64  DepositIndex;
         uint64  PrevBlock;
@@ -45,12 +45,12 @@ library TxHash {
         address Recipient;
         uint64  Allowance;
         uint64  Spent;
-        //bytes sig;
+        //bytes Sig;
     }
 
     struct RLPItem {
-        uint _unsafe_memPtr;    // Pointer to the RLP-encoded bytes.
-        uint _unsafe_length;    // Number of bytes. This is the full length of the string.
+        uint _unsafe_memPtr;
+        uint _unsafe_length;
     }
 
     function verifyTX(bytes memory txBytes) internal view returns (bool) {
@@ -150,10 +150,10 @@ library TxHash {
         return uint64(rlpTx[1].toUint() - rlpTx[6].toUint() - rlpTx[7].toUint());
     }
 
-    function getTx(bytes memory txBytes) internal view returns (TXN memory) {
+    function parseTx(bytes memory txBytes) internal view returns (PlasmaTx memory) {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        TXN memory txn;
-        txn.TokenId =  uint64(rlpTx[0].toUint());
+        PlasmaTx memory txn;
+        txn.TokenID =  uint64(rlpTx[0].toUint());
         txn.Denomination =  uint64(rlpTx[1].toUint());
         txn.DepositIndex =  uint64(rlpTx[2].toUint());
         txn.PrevBlock =  uint64(rlpTx[3].toUint());
