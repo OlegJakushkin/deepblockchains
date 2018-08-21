@@ -120,8 +120,8 @@ contract PlasmaCash {
         require(exitTx.PrevOwner == prevTx.Recipient, "invalid signer");
         require(exitTx.TokenID == prevTx.TokenID, "tokenID mismatch");
 
-        require(txBytes.verifyTX(), "exitTx sig failure");
-        require(prevTxBytes.verifyTX(), "prevTx sig failure");
+        require(txBytes.verifyTx(), "exitTx sig failure");
+        require(prevTxBytes.verifyTx(), "prevTx sig failure");
         require(prevBlk < blk, "Invlid Exit order");
         require(prevBlk == exitTx.PrevBlock, "potential challengeBetween");
 
@@ -157,7 +157,7 @@ contract PlasmaCash {
           require(challengeTx.Recipient != etx.exitor, "Invlid challengeBetween cond"); // any legitimate challengeBetween will invalidate transaction after blk
         }
 
-        require(txBytes.verifyTX(), "sig failure");
+        require(txBytes.verifyTx(), "sig failure");
         require(smt.checkMembership(keccak256(txBytes),childChain[blk], tokenID, proof), "non member");
 
         //valid challenge, etx removed from queue
@@ -176,8 +176,8 @@ contract PlasmaCash {
         Transaction.PlasmaTx memory faultyTx = faultyTxBytes.parseTx();
         require(lastValidTx.TokenID == faultyTx.TokenID, "tokenID mismatch");
         require(lastValidTx.Recipient != faultyTx.PrevOwner, "Invlid challengeBefore cond");
-        require(txBytes.verifyTX(), "lastValidTx sig failure");
-        require(faultyTxBytes.verifyTX(), "faultyTx sig failure");
+        require(txBytes.verifyTx(), "lastValidTx sig failure");
+        require(faultyTxBytes.verifyTx(), "faultyTx sig failure");
         require(blk == faultyTx.PrevBlock, "jump sequence");
         require(blk < faultyBlk && faultyBlk <= etx.prevBlk, "Invlid transition sequence");
 
