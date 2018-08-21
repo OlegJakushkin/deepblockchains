@@ -21,7 +21,7 @@
  * @dev Library for rlp encoding arbitrary bytes or lists.
  */
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.24;
 
 library RLPEncode {
     uint8 constant STRING_SHORT_PREFIX = 0x80;
@@ -32,7 +32,7 @@ library RLPEncode {
     /// @dev Rlp encodes a bytes
     /// @param self The bytes to be encoded
     /// @return The rlp encoded bytes
-	function encodeBytes(bytes memory self) internal constant returns (bytes) {
+	function encodeBytes(bytes memory self) internal pure returns (bytes) {
         bytes memory encoded;
         if(self.length == 1 && uint(self[0]) < 0x80) {
             encoded = new bytes(1);
@@ -46,13 +46,13 @@ library RLPEncode {
     /// @dev Rlp encodes a bytes[]. Note that the items in the bytes[] will not automatically be rlp encoded.
     /// @param self The bytes[] to be encoded
     /// @return The rlp encoded bytes[]
-    function encodeList(bytes[] memory self) internal constant returns (bytes) {
+    function encodeList(bytes[] memory self) internal pure returns (bytes) {
     	bytes memory list = flatten(self);
 	    bytes memory encoded = encode(list, LIST_SHORT_PREFIX, LIST_LONG_PREFIX);
         return encoded;
     }
 
-    function encode(bytes memory self, uint8 prefix1, uint8 prefix2) private constant returns (bytes) {
+    function encode(bytes memory self, uint8 prefix1, uint8 prefix2) private pure returns (bytes) {
     	uint selfPtr;
         assembly { selfPtr := add(self, 0x20) }
 
@@ -95,7 +95,7 @@ library RLPEncode {
         return encoded;
     }
 
-    function flatten(bytes[] memory self) private constant returns (bytes) {
+    function flatten(bytes[] memory self) private pure returns (bytes) {
         if(self.length == 0) {
             return new bytes(0);
         }
@@ -123,7 +123,7 @@ library RLPEncode {
     }
 
     /// This function is from Nick Johnson's string utils library
-    function memcpy(uint dest, uint src, uint len) private {
+    function memcpy(uint dest, uint src, uint len) private pure {
         // Copy word-length chunks while possible
         for(; len >= 32; len -= 32) {
             assembly {
