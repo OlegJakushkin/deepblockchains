@@ -231,6 +231,27 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBlock"
 }
 ```
 
+* `getPlasmaTransactionProof(txHash bytes32)` - get inclusion proof { blockNumber, txbyte, proofByte } by txHash. An inclusion proof is required to start exit or challenge double spend on MainNet.
+
+```
+> plasma.getPlasmaTransactionProof("0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2");
+{
+    blockNumber: "0x1",
+    proofByte: "0xe0000000000000004416e8b81b687374a7705bd58f1aa122c917ed5f311b747f5e984922c4f8eed8c7a1596cabe958de0d77ae76d680905f8c23bb85bba7bb564e9ebb9fb7f257097d11460cd0890531370a9f5a5827ce98ec42c947bf5c867cf800d5c66a955a72",
+    txbyte: "0xf8838837b01bd3adfc4ef3880de0b6b3a7640000018094a45b77a98e2b840617e2ec6ddfbf71403bdcb6839482da88c31e874c678d529ad51e43de3a4baf39148080b84170c92c528ce24447127210425f1ede95f4adb3425ba96794243f656f68d4f9d10608e256118a1279fa6624dc4b9fa086664329ca0dc4a8c6f66c3d96a868258d00"
+}
+
+curl -X POST --data  '{"jsonrpc":"2.0","id":"6","method":"plasma_getPlasmaTransactionProof","params":["0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2"]}' -H 'content-type:application/json;' 'localhost:8502';
+{
+    "jsonrpc": "2.0",
+    "id": "6",
+    "result": {
+        "txbyte": "0xf8838837b01bd3adfc4ef3880de0b6b3a7640000018094a45b77a98e2b840617e2ec6ddfbf71403bdcb6839482da88c31e874c678d529ad51e43de3a4baf39148080b84170c92c528ce24447127210425f1ede95f4adb3425ba96794243f656f68d4f9d10608e256118a1279fa6624dc4b9fa086664329ca0dc4a8c6f66c3d96a868258d00",
+        "proofByte": "0xe0000000000000004416e8b81b687374a7705bd58f1aa122c917ed5f311b747f5e984922c4f8eed8c7a1596cabe958de0d77ae76d680905f8c23bb85bba7bb564e9ebb9fb7f257097d11460cd0890531370a9f5a5827ce98ec42c947bf5c867cf800d5c66a955a72",
+        "blockNumber": "0x1"
+    }
+}
+```
 
 ## Plasma Transaction
 When one node sends a Plasma token to another:

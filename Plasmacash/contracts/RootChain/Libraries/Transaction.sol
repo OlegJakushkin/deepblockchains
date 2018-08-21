@@ -17,11 +17,7 @@
 
 
 /**
-<<<<<<< HEAD:Plasmacash/contracts/RootChain/Libraries/Transaction.sol
- * @title  Transaction for PlasmaCash
-=======
  * @title Deep Blockchains - Plasma Transaction Library
->>>>>>> plasma-fix:Plasmacash/contracts/RootChain/Libraries/Transaction.sol
  * @author Michael Chung (michael@wolk.com)
  * @dev This library handles PlasmaTx RLP encode/decode and verifies signature on chain
  */
@@ -52,21 +48,10 @@ library Transaction {
         uint64  Allowance;
         uint64  Spent;
         //bytes Sig;
-<<<<<<< HEAD:Plasmacash/contracts/RootChain/Libraries/Transaction.sol
-    }
-
-    struct RLPItem {
-        uint _unsafe_memPtr;
-        uint _unsafe_length;
-    }
-
-    function verifyTX(bytes memory txBytes) internal view returns (bool) {
-=======
         uint64  Balance;
     }
 
     function getSigner(bytes memory txBytes) internal pure returns (address) {
->>>>>>> plasma-fix:Plasmacash/contracts/RootChain/Libraries/Transaction.sol
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         bytes[] memory unsignedTx = new bytes[](9);
         bytes memory sig;
@@ -116,31 +101,7 @@ library Transaction {
         return (ECRecovery.recover(keccak256(rlpUnsignedTx), sig) == prevOwner);
      }
 
-<<<<<<< HEAD:Plasmacash/contracts/RootChain/Libraries/Transaction.sol
-    function getDenomination(bytes memory txBytes) internal view returns (uint64) {
-        RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        return uint64(rlpTx[1].toUint());
-    }
-
-    function getAllowance(bytes memory txBytes) internal view returns (uint64) {
-        RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        return uint64(rlpTx[6].toUint());
-    }
-
-    function getSpent(bytes memory txBytes) internal view returns (uint64) {
-        RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        return uint64(rlpTx[7].toUint());
-    }
-
-    function getBalance(bytes memory txBytes) internal view returns (uint64) {
-        RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        return uint64(rlpTx[1].toUint() - rlpTx[6].toUint() - rlpTx[7].toUint());
-    }
-
-    function parseTx(bytes memory txBytes) internal view returns (PlasmaTx memory) {
-=======
     function parseTx(bytes memory txBytes) internal pure returns (PlasmaTx memory) {
->>>>>>> plasma-fix:Plasmacash/contracts/RootChain/Libraries/Transaction.sol
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         PlasmaTx memory txn;
         txn.TokenID =  uint64(rlpTx[0].toUint());
