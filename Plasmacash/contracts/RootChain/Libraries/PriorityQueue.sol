@@ -20,7 +20,7 @@
  * @author from https://github.com/omisego/plasma-mvp
  */
 
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.25;
 
 import "./SafeMath.sol";
 

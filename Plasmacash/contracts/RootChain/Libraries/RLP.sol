@@ -21,7 +21,7 @@
  * @dev RLPReader is used to read and parse RLP encoded data in memory.
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 library RLP {
     uint constant DATA_SHORT_START = 0x80;
     uint constant DATA_LONG_START = 0xB8;

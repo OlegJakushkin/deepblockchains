@@ -21,7 +21,7 @@
  * @dev Library for rlp encoding arbitrary bytes or lists.
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 library RLPEncode {
     uint8 constant STRING_SHORT_PREFIX = 0x80;

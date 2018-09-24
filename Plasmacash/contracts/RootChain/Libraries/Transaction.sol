@@ -55,11 +55,9 @@ library Transaction {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         bytes[] memory unsignedTx = new bytes[](9);
         bytes memory sig;
-        address prevOwner;
 
         for(uint i=0; i<rlpTx.length; i++) {
             if (i==4){
-                prevOwner = rlpTx[i].toAddress();
                 unsignedTx[i] = rlpTx[i].toBytes();
             }else if (i==8){
                 sig = rlpTx[i].toData();

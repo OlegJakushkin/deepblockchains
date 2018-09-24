@@ -22,7 +22,7 @@
  * @dev sparse merkle tree implementation.
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
  contract SparseMerkle {
 

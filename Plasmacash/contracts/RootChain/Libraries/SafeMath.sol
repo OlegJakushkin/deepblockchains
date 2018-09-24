@@ -14,7 +14,7 @@
 * along with the plasmacash library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 library SafeMath {
 

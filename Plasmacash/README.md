@@ -42,7 +42,9 @@ Most significantly, we have made our plasma both stateful and stateless!
 
 ## Contract Interface
 
-* [PlasmaTx Debug Tool](https://rinkeby.etherscan.io/address/0x6031cb0df4f300d53f7256e818af51f0243a354f#readContract): This library handles rlp txhash and verifies a transaction's validity by checking (1) recipient matches with depositor when prevBlock is 0 or (2) signer matches with prevOwner otherwise. Additional helper functions have been provided in this contract but not used in production code.  
+* [PlasmaTx Debug Tool](https://rinkeby.etherscan.io/address/0x6031cb0df4f300d53f7256e818af51f0243a354f#readContract): The library handles PlasmaTx RLP encode/decode and verifies a PlasmaTx's validity by checking (1) recipient matches with depositor when prevBlock is 0 or (2) signer matches with prevOwner otherwise. Additional helper functions have been provided in this contract but not used in production code.  
+
+* [AnchorTx Debug Tool](https://rinkeby.etherscan.io/address/0x142d098956c8ef798d5c6d0c3c270374e025fac7#readContract): The library handles AnchorTx and Extra struct RLP encode/decode on chain. Additional helper functions have been provided in this contract but not used in production code.
 
 * [SparseMerkle Tree](https://rinkeby.etherscan.io/address/0xda4d188831b6c67140cefec35f540bacd87ba526#readContract): This contract is implemented based on [succinct sparse merkle proof format](https://ethresear.ch/t/plasma-cash-with-sparse-merkle-trees-bloom-filters-and-probabilistic-transfers) we published on ethresearch.
 

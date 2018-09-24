@@ -22,7 +22,7 @@
  * @dev Plasma Transaction Debug Tool. Helper functions are not exposed in production contract
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 import './Transaction.sol';
 
