@@ -11,111 +11,111 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
-	"github.com/wolkdb/plasma/pethchain/types"
 )
 
-// PlasmaCashABI is the input ABI used to generate the binding from.
-const PlasmaCashABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNextExit\",\"outputs\":[{\"name\":\"depID\",\"type\":\"uint64\"},{\"name\":\"tokenID\",\"type\":\"uint64\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"challenge\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentDepositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_depositIndex\",\"type\":\"uint64\"}],\"name\":\"depositExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"kill\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"childChain\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"prevTxBytes\",\"type\":\"bytes\"},{\"name\":\"prevProof\",\"type\":\"bytes\"},{\"name\":\"prevBlk\",\"type\":\"uint64\"},{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"startExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"},{\"name\":\"faultyTxBytes\",\"type\":\"bytes\"},{\"name\":\"faultyProof\",\"type\":\"bytes\"},{\"name\":\"faultyBlk\",\"type\":\"uint64\"}],\"name\":\"challengeBefore\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentBlkNum\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"authority\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"finalizeExits\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"exits\",\"outputs\":[{\"name\":\"prevBlk\",\"type\":\"uint64\"},{\"name\":\"exitBlk\",\"type\":\"uint64\"},{\"name\":\"exitor\",\"type\":\"address\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"name\":\"bond\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blkRoot\",\"type\":\"bytes32\"},{\"name\":\"_blknum\",\"type\":\"uint64\"}],\"name\":\"submitBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_depositor\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"}],\"name\":\"Deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"StartExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_rootHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"name\":\"_blknum\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_currentDepositIndex\",\"type\":\"uint64\"}],\"name\":\"PublishedBlock\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"FinalizedExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_challenger\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"Challenge\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"depID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"tokenID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"name\":\"CurrtentExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"cuurrentTS\",\"type\":\"uint256\"}],\"name\":\"ExitTime\",\"type\":\"event\"}]"
+// RootChainABI is the input ABI used to generate the binding from.
+const RootChainABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"getNextExit\",\"outputs\":[{\"name\":\"depID\",\"type\":\"uint64\"},{\"name\":\"tokenID\",\"type\":\"uint64\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"challenge\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentDepositIndex\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_depositIndex\",\"type\":\"uint64\"}],\"name\":\"depositExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"kill\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"childChain\",\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"prevTxBytes\",\"type\":\"bytes\"},{\"name\":\"prevProof\",\"type\":\"bytes\"},{\"name\":\"prevBlk\",\"type\":\"uint64\"},{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"}],\"name\":\"startExit\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"txBytes\",\"type\":\"bytes\"},{\"name\":\"proof\",\"type\":\"bytes\"},{\"name\":\"blk\",\"type\":\"uint64\"},{\"name\":\"faultyTxBytes\",\"type\":\"bytes\"},{\"name\":\"faultyProof\",\"type\":\"bytes\"},{\"name\":\"faultyBlk\",\"type\":\"uint64\"}],\"name\":\"challengeBefore\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"currentBlkNum\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"authority\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"finalizeExits\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"deposit\",\"outputs\":[],\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"exits\",\"outputs\":[{\"name\":\"prevBlk\",\"type\":\"uint64\"},{\"name\":\"exitBlk\",\"type\":\"uint64\"},{\"name\":\"exitor\",\"type\":\"address\"},{\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"name\":\"bond\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_blkRoot\",\"type\":\"bytes32\"},{\"name\":\"_blknum\",\"type\":\"uint64\"}],\"name\":\"submitBlock\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"name\":\"depositBalance\",\"outputs\":[{\"name\":\"\",\"type\":\"uint64\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_depositor\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"}],\"name\":\"Deposit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"StartExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_rootHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"name\":\"_blknum\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_currentDepositIndex\",\"type\":\"uint64\"}],\"name\":\"PublishedBlock\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_exiter\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_depositIndex\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"_denomination\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"FinalizedExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"_challenger\",\"type\":\"address\"},{\"indexed\":true,\"name\":\"_tokenID\",\"type\":\"uint64\"},{\"indexed\":true,\"name\":\"_timestamp\",\"type\":\"uint256\"}],\"name\":\"Challenge\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"_priority\",\"type\":\"uint256\"}],\"name\":\"ExitCompleted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"depID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"tokenID\",\"type\":\"uint64\"},{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"}],\"name\":\"CurrtentExit\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"name\":\"exitableTS\",\"type\":\"uint256\"},{\"indexed\":false,\"name\":\"cuurrentTS\",\"type\":\"uint256\"}],\"name\":\"ExitTime\",\"type\":\"event\"}]"
 
-// PlasmaCash is an auto generated Go binding around an Ethereum contract.
-type PlasmaCash struct {
-	PlasmaCashCaller     // Read-only binding to the contract
-	PlasmaCashTransactor // Write-only binding to the contract
-	PlasmaCashFilterer   // Log filterer for contract events
+// RootChain is an auto generated Go binding around an Ethereum contract.
+type RootChain struct {
+	RootChainCaller     // Read-only binding to the contract
+	RootChainTransactor // Write-only binding to the contract
+	RootChainFilterer   // Log filterer for contract events
 }
 
-// PlasmaCashCaller is an auto generated read-only Go binding around an Ethereum contract.
-type PlasmaCashCaller struct {
+// RootChainCaller is an auto generated read-only Go binding around an Ethereum contract.
+type RootChainCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// PlasmaCashTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type PlasmaCashTransactor struct {
+// RootChainTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type RootChainTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// PlasmaCashFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type PlasmaCashFilterer struct {
+// RootChainFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type RootChainFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// PlasmaCashSession is an auto generated Go binding around an Ethereum contract,
+// RootChainSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type PlasmaCashSession struct {
-	Contract     *PlasmaCash       // Generic contract binding to set the session for
+type RootChainSession struct {
+	Contract     *RootChain        // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// PlasmaCashCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// RootChainCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type PlasmaCashCallerSession struct {
-	Contract *PlasmaCashCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts     // Call options to use throughout this session
+type RootChainCallerSession struct {
+	Contract *RootChainCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts    // Call options to use throughout this session
 }
 
-// PlasmaCashTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// RootChainTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type PlasmaCashTransactorSession struct {
-	Contract     *PlasmaCashTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts     // Transaction auth options to use throughout this session
+type RootChainTransactorSession struct {
+	Contract     *RootChainTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts    // Transaction auth options to use throughout this session
 }
 
-// PlasmaCashRaw is an auto generated low-level Go binding around an Ethereum contract.
-type PlasmaCashRaw struct {
-	Contract *PlasmaCash // Generic contract binding to access the raw methods on
+// RootChainRaw is an auto generated low-level Go binding around an Ethereum contract.
+type RootChainRaw struct {
+	Contract *RootChain // Generic contract binding to access the raw methods on
 }
 
-// PlasmaCashCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type PlasmaCashCallerRaw struct {
-	Contract *PlasmaCashCaller // Generic read-only contract binding to access the raw methods on
+// RootChainCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type RootChainCallerRaw struct {
+	Contract *RootChainCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// PlasmaCashTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type PlasmaCashTransactorRaw struct {
-	Contract *PlasmaCashTransactor // Generic write-only contract binding to access the raw methods on
+// RootChainTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type RootChainTransactorRaw struct {
+	Contract *RootChainTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewPlasmaCash creates a new instance of PlasmaCash, bound to a specific deployed contract.
-func NewPlasmaCash(address common.Address, backend bind.ContractBackend) (*PlasmaCash, error) {
-	contract, err := bindPlasmaCash(address, backend, backend, backend)
+// NewRootChain creates a new instance of RootChain, bound to a specific deployed contract.
+func NewRootChain(address common.Address, backend bind.ContractBackend) (*RootChain, error) {
+	contract, err := bindRootChain(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCash{PlasmaCashCaller: PlasmaCashCaller{contract: contract}, PlasmaCashTransactor: PlasmaCashTransactor{contract: contract}, PlasmaCashFilterer: PlasmaCashFilterer{contract: contract}}, nil
+	return &RootChain{RootChainCaller: RootChainCaller{contract: contract}, RootChainTransactor: RootChainTransactor{contract: contract}, RootChainFilterer: RootChainFilterer{contract: contract}}, nil
 }
 
-// NewPlasmaCashCaller creates a new read-only instance of PlasmaCash, bound to a specific deployed contract.
-func NewPlasmaCashCaller(address common.Address, caller bind.ContractCaller) (*PlasmaCashCaller, error) {
-	contract, err := bindPlasmaCash(address, caller, nil, nil)
+// NewRootChainCaller creates a new read-only instance of RootChain, bound to a specific deployed contract.
+func NewRootChainCaller(address common.Address, caller bind.ContractCaller) (*RootChainCaller, error) {
+	contract, err := bindRootChain(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashCaller{contract: contract}, nil
+	return &RootChainCaller{contract: contract}, nil
 }
 
-// NewPlasmaCashTransactor creates a new write-only instance of PlasmaCash, bound to a specific deployed contract.
-func NewPlasmaCashTransactor(address common.Address, transactor bind.ContractTransactor) (*PlasmaCashTransactor, error) {
-	contract, err := bindPlasmaCash(address, nil, transactor, nil)
+// NewRootChainTransactor creates a new write-only instance of RootChain, bound to a specific deployed contract.
+func NewRootChainTransactor(address common.Address, transactor bind.ContractTransactor) (*RootChainTransactor, error) {
+	contract, err := bindRootChain(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashTransactor{contract: contract}, nil
+	return &RootChainTransactor{contract: contract}, nil
 }
 
-// NewPlasmaCashFilterer creates a new log filterer instance of PlasmaCash, bound to a specific deployed contract.
-func NewPlasmaCashFilterer(address common.Address, filterer bind.ContractFilterer) (*PlasmaCashFilterer, error) {
-	contract, err := bindPlasmaCash(address, nil, nil, filterer)
+// NewRootChainFilterer creates a new log filterer instance of RootChain, bound to a specific deployed contract.
+func NewRootChainFilterer(address common.Address, filterer bind.ContractFilterer) (*RootChainFilterer, error) {
+	contract, err := bindRootChain(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashFilterer{contract: contract}, nil
+	return &RootChainFilterer{contract: contract}, nil
 }
 
-// bindPlasmaCash binds a generic wrapper to an already deployed contract.
-func bindPlasmaCash(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(PlasmaCashABI))
+// bindRootChain binds a generic wrapper to an already deployed contract.
+func bindRootChain(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(RootChainABI))
 	if err != nil {
 		return nil, err
 	}
@@ -126,200 +126,200 @@ func bindPlasmaCash(address common.Address, caller bind.ContractCaller, transact
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_PlasmaCash *PlasmaCashRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _PlasmaCash.Contract.PlasmaCashCaller.contract.Call(opts, result, method, params...)
+func (_RootChain *RootChainRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+	return _RootChain.Contract.RootChainCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_PlasmaCash *PlasmaCashRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.PlasmaCashTransactor.contract.Transfer(opts)
+func (_RootChain *RootChainRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RootChain.Contract.RootChainTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_PlasmaCash *PlasmaCashRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.PlasmaCashTransactor.contract.Transact(opts, method, params...)
+func (_RootChain *RootChainRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _RootChain.Contract.RootChainTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_PlasmaCash *PlasmaCashCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
-	return _PlasmaCash.Contract.contract.Call(opts, result, method, params...)
+func (_RootChain *RootChainCallerRaw) Call(opts *bind.CallOpts, result interface{}, method string, params ...interface{}) error {
+	return _RootChain.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_PlasmaCash *PlasmaCashTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.contract.Transfer(opts)
+func (_RootChain *RootChainTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RootChain.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_PlasmaCash *PlasmaCashTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.contract.Transact(opts, method, params...)
+func (_RootChain *RootChainTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _RootChain.Contract.contract.Transact(opts, method, params...)
 }
 
 // Authority is a free data retrieval call binding the contract method 0xbf7e214f.
 //
 // Solidity: function authority() constant returns(address)
-func (_PlasmaCash *PlasmaCashCaller) Authority(opts *bind.CallOpts) (common.Address, error) {
+func (_RootChain *RootChainCaller) Authority(opts *bind.CallOpts) (common.Address, error) {
 	var (
 		ret0 = new(common.Address)
 	)
 	out := ret0
-	err := _PlasmaCash.contract.Call(opts, out, "authority")
+	err := _RootChain.contract.Call(opts, out, "authority")
 	return *ret0, err
 }
 
 // Authority is a free data retrieval call binding the contract method 0xbf7e214f.
 //
 // Solidity: function authority() constant returns(address)
-func (_PlasmaCash *PlasmaCashSession) Authority() (common.Address, error) {
-	return _PlasmaCash.Contract.Authority(&_PlasmaCash.CallOpts)
+func (_RootChain *RootChainSession) Authority() (common.Address, error) {
+	return _RootChain.Contract.Authority(&_RootChain.CallOpts)
 }
 
 // Authority is a free data retrieval call binding the contract method 0xbf7e214f.
 //
 // Solidity: function authority() constant returns(address)
-func (_PlasmaCash *PlasmaCashCallerSession) Authority() (common.Address, error) {
-	return _PlasmaCash.Contract.Authority(&_PlasmaCash.CallOpts)
+func (_RootChain *RootChainCallerSession) Authority() (common.Address, error) {
+	return _RootChain.Contract.Authority(&_RootChain.CallOpts)
 }
 
 // ChildChain is a free data retrieval call binding the contract method 0x6434693a.
 //
 // Solidity: function childChain( uint64) constant returns(bytes32)
-func (_PlasmaCash *PlasmaCashCaller) ChildChain(opts *bind.CallOpts, arg0 uint64) ([32]byte, error) {
+func (_RootChain *RootChainCaller) ChildChain(opts *bind.CallOpts, arg0 uint64) ([32]byte, error) {
 	var (
 		ret0 = new([32]byte)
 	)
 	out := ret0
-	err := _PlasmaCash.contract.Call(opts, out, "childChain", arg0)
+	err := _RootChain.contract.Call(opts, out, "childChain", arg0)
 	return *ret0, err
 }
 
 // ChildChain is a free data retrieval call binding the contract method 0x6434693a.
 //
 // Solidity: function childChain( uint64) constant returns(bytes32)
-func (_PlasmaCash *PlasmaCashSession) ChildChain(arg0 uint64) ([32]byte, error) {
-	return _PlasmaCash.Contract.ChildChain(&_PlasmaCash.CallOpts, arg0)
+func (_RootChain *RootChainSession) ChildChain(arg0 uint64) ([32]byte, error) {
+	return _RootChain.Contract.ChildChain(&_RootChain.CallOpts, arg0)
 }
 
 // ChildChain is a free data retrieval call binding the contract method 0x6434693a.
 //
 // Solidity: function childChain( uint64) constant returns(bytes32)
-func (_PlasmaCash *PlasmaCashCallerSession) ChildChain(arg0 uint64) ([32]byte, error) {
-	return _PlasmaCash.Contract.ChildChain(&_PlasmaCash.CallOpts, arg0)
+func (_RootChain *RootChainCallerSession) ChildChain(arg0 uint64) ([32]byte, error) {
+	return _RootChain.Contract.ChildChain(&_RootChain.CallOpts, arg0)
 }
 
 // CurrentBlkNum is a free data retrieval call binding the contract method 0x8c1cdd5d.
 //
 // Solidity: function currentBlkNum() constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCaller) CurrentBlkNum(opts *bind.CallOpts) (uint64, error) {
+func (_RootChain *RootChainCaller) CurrentBlkNum(opts *bind.CallOpts) (uint64, error) {
 	var (
 		ret0 = new(uint64)
 	)
 	out := ret0
-	err := _PlasmaCash.contract.Call(opts, out, "currentBlkNum")
+	err := _RootChain.contract.Call(opts, out, "currentBlkNum")
 	return *ret0, err
 }
 
 // CurrentBlkNum is a free data retrieval call binding the contract method 0x8c1cdd5d.
 //
 // Solidity: function currentBlkNum() constant returns(uint64)
-func (_PlasmaCash *PlasmaCashSession) CurrentBlkNum() (uint64, error) {
-	return _PlasmaCash.Contract.CurrentBlkNum(&_PlasmaCash.CallOpts)
+func (_RootChain *RootChainSession) CurrentBlkNum() (uint64, error) {
+	return _RootChain.Contract.CurrentBlkNum(&_RootChain.CallOpts)
 }
 
 // CurrentBlkNum is a free data retrieval call binding the contract method 0x8c1cdd5d.
 //
 // Solidity: function currentBlkNum() constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCallerSession) CurrentBlkNum() (uint64, error) {
-	return _PlasmaCash.Contract.CurrentBlkNum(&_PlasmaCash.CallOpts)
+func (_RootChain *RootChainCallerSession) CurrentBlkNum() (uint64, error) {
+	return _RootChain.Contract.CurrentBlkNum(&_RootChain.CallOpts)
 }
 
 // CurrentDepositIndex is a free data retrieval call binding the contract method 0x36e5df06.
 //
 // Solidity: function currentDepositIndex() constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCaller) CurrentDepositIndex(opts *bind.CallOpts) (uint64, error) {
+func (_RootChain *RootChainCaller) CurrentDepositIndex(opts *bind.CallOpts) (uint64, error) {
 	var (
 		ret0 = new(uint64)
 	)
 	out := ret0
-	err := _PlasmaCash.contract.Call(opts, out, "currentDepositIndex")
+	err := _RootChain.contract.Call(opts, out, "currentDepositIndex")
 	return *ret0, err
 }
 
 // CurrentDepositIndex is a free data retrieval call binding the contract method 0x36e5df06.
 //
 // Solidity: function currentDepositIndex() constant returns(uint64)
-func (_PlasmaCash *PlasmaCashSession) CurrentDepositIndex() (uint64, error) {
-	return _PlasmaCash.Contract.CurrentDepositIndex(&_PlasmaCash.CallOpts)
+func (_RootChain *RootChainSession) CurrentDepositIndex() (uint64, error) {
+	return _RootChain.Contract.CurrentDepositIndex(&_RootChain.CallOpts)
 }
 
 // CurrentDepositIndex is a free data retrieval call binding the contract method 0x36e5df06.
 //
 // Solidity: function currentDepositIndex() constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCallerSession) CurrentDepositIndex() (uint64, error) {
-	return _PlasmaCash.Contract.CurrentDepositIndex(&_PlasmaCash.CallOpts)
+func (_RootChain *RootChainCallerSession) CurrentDepositIndex() (uint64, error) {
+	return _RootChain.Contract.CurrentDepositIndex(&_RootChain.CallOpts)
 }
 
 // DepositBalance is a free data retrieval call binding the contract method 0xf34272ab.
 //
 // Solidity: function depositBalance( uint64) constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCaller) DepositBalance(opts *bind.CallOpts, arg0 uint64) (uint64, error) {
+func (_RootChain *RootChainCaller) DepositBalance(opts *bind.CallOpts, arg0 uint64) (uint64, error) {
 	var (
 		ret0 = new(uint64)
 	)
 	out := ret0
-	err := _PlasmaCash.contract.Call(opts, out, "depositBalance", arg0)
+	err := _RootChain.contract.Call(opts, out, "depositBalance", arg0)
 	return *ret0, err
 }
 
 // DepositBalance is a free data retrieval call binding the contract method 0xf34272ab.
 //
 // Solidity: function depositBalance( uint64) constant returns(uint64)
-func (_PlasmaCash *PlasmaCashSession) DepositBalance(arg0 uint64) (uint64, error) {
-	return _PlasmaCash.Contract.DepositBalance(&_PlasmaCash.CallOpts, arg0)
+func (_RootChain *RootChainSession) DepositBalance(arg0 uint64) (uint64, error) {
+	return _RootChain.Contract.DepositBalance(&_RootChain.CallOpts, arg0)
 }
 
 // DepositBalance is a free data retrieval call binding the contract method 0xf34272ab.
 //
 // Solidity: function depositBalance( uint64) constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCallerSession) DepositBalance(arg0 uint64) (uint64, error) {
-	return _PlasmaCash.Contract.DepositBalance(&_PlasmaCash.CallOpts, arg0)
+func (_RootChain *RootChainCallerSession) DepositBalance(arg0 uint64) (uint64, error) {
+	return _RootChain.Contract.DepositBalance(&_RootChain.CallOpts, arg0)
 }
 
 // DepositIndex is a free data retrieval call binding the contract method 0x0f8592ac.
 //
 // Solidity: function depositIndex( uint64) constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCaller) DepositIndex(opts *bind.CallOpts, arg0 uint64) (uint64, error) {
+func (_RootChain *RootChainCaller) DepositIndex(opts *bind.CallOpts, arg0 uint64) (uint64, error) {
 	var (
 		ret0 = new(uint64)
 	)
 	out := ret0
-	err := _PlasmaCash.contract.Call(opts, out, "depositIndex", arg0)
+	err := _RootChain.contract.Call(opts, out, "depositIndex", arg0)
 	return *ret0, err
 }
 
 // DepositIndex is a free data retrieval call binding the contract method 0x0f8592ac.
 //
 // Solidity: function depositIndex( uint64) constant returns(uint64)
-func (_PlasmaCash *PlasmaCashSession) DepositIndex(arg0 uint64) (uint64, error) {
-	return _PlasmaCash.Contract.DepositIndex(&_PlasmaCash.CallOpts, arg0)
+func (_RootChain *RootChainSession) DepositIndex(arg0 uint64) (uint64, error) {
+	return _RootChain.Contract.DepositIndex(&_RootChain.CallOpts, arg0)
 }
 
 // DepositIndex is a free data retrieval call binding the contract method 0x0f8592ac.
 //
 // Solidity: function depositIndex( uint64) constant returns(uint64)
-func (_PlasmaCash *PlasmaCashCallerSession) DepositIndex(arg0 uint64) (uint64, error) {
-	return _PlasmaCash.Contract.DepositIndex(&_PlasmaCash.CallOpts, arg0)
+func (_RootChain *RootChainCallerSession) DepositIndex(arg0 uint64) (uint64, error) {
+	return _RootChain.Contract.DepositIndex(&_RootChain.CallOpts, arg0)
 }
 
 // Exits is a free data retrieval call binding the contract method 0xd6463d40.
 //
 // Solidity: function exits( uint64) constant returns(prevBlk uint64, exitBlk uint64, exitor address, exitableTS uint256, bond uint256)
-func (_PlasmaCash *PlasmaCashCaller) Exits(opts *bind.CallOpts, arg0 uint64) (struct {
+func (_RootChain *RootChainCaller) Exits(opts *bind.CallOpts, arg0 uint64) (struct {
 	PrevBlk    uint64
 	ExitBlk    uint64
 	Exitor     common.Address
@@ -334,40 +334,40 @@ func (_PlasmaCash *PlasmaCashCaller) Exits(opts *bind.CallOpts, arg0 uint64) (st
 		Bond       *big.Int
 	})
 	out := ret
-	err := _PlasmaCash.contract.Call(opts, out, "exits", arg0)
+	err := _RootChain.contract.Call(opts, out, "exits", arg0)
 	return *ret, err
 }
 
 // Exits is a free data retrieval call binding the contract method 0xd6463d40.
 //
 // Solidity: function exits( uint64) constant returns(prevBlk uint64, exitBlk uint64, exitor address, exitableTS uint256, bond uint256)
-func (_PlasmaCash *PlasmaCashSession) Exits(arg0 uint64) (struct {
+func (_RootChain *RootChainSession) Exits(arg0 uint64) (struct {
 	PrevBlk    uint64
 	ExitBlk    uint64
 	Exitor     common.Address
 	ExitableTS *big.Int
 	Bond       *big.Int
 }, error) {
-	return _PlasmaCash.Contract.Exits(&_PlasmaCash.CallOpts, arg0)
+	return _RootChain.Contract.Exits(&_RootChain.CallOpts, arg0)
 }
 
 // Exits is a free data retrieval call binding the contract method 0xd6463d40.
 //
 // Solidity: function exits( uint64) constant returns(prevBlk uint64, exitBlk uint64, exitor address, exitableTS uint256, bond uint256)
-func (_PlasmaCash *PlasmaCashCallerSession) Exits(arg0 uint64) (struct {
+func (_RootChain *RootChainCallerSession) Exits(arg0 uint64) (struct {
 	PrevBlk    uint64
 	ExitBlk    uint64
 	Exitor     common.Address
 	ExitableTS *big.Int
 	Bond       *big.Int
 }, error) {
-	return _PlasmaCash.Contract.Exits(&_PlasmaCash.CallOpts, arg0)
+	return _RootChain.Contract.Exits(&_RootChain.CallOpts, arg0)
 }
 
 // GetNextExit is a free data retrieval call binding the contract method 0x2fd56a25.
 //
 // Solidity: function getNextExit() constant returns(depID uint64, tokenID uint64, exitableTS uint256)
-func (_PlasmaCash *PlasmaCashCaller) GetNextExit(opts *bind.CallOpts) (struct {
+func (_RootChain *RootChainCaller) GetNextExit(opts *bind.CallOpts) (struct {
 	DepID      uint64
 	TokenID    uint64
 	ExitableTS *big.Int
@@ -378,203 +378,203 @@ func (_PlasmaCash *PlasmaCashCaller) GetNextExit(opts *bind.CallOpts) (struct {
 		ExitableTS *big.Int
 	})
 	out := ret
-	err := _PlasmaCash.contract.Call(opts, out, "getNextExit")
+	err := _RootChain.contract.Call(opts, out, "getNextExit")
 	return *ret, err
 }
 
 // GetNextExit is a free data retrieval call binding the contract method 0x2fd56a25.
 //
 // Solidity: function getNextExit() constant returns(depID uint64, tokenID uint64, exitableTS uint256)
-func (_PlasmaCash *PlasmaCashSession) GetNextExit() (struct {
+func (_RootChain *RootChainSession) GetNextExit() (struct {
 	DepID      uint64
 	TokenID    uint64
 	ExitableTS *big.Int
 }, error) {
-	return _PlasmaCash.Contract.GetNextExit(&_PlasmaCash.CallOpts)
+	return _RootChain.Contract.GetNextExit(&_RootChain.CallOpts)
 }
 
 // GetNextExit is a free data retrieval call binding the contract method 0x2fd56a25.
 //
 // Solidity: function getNextExit() constant returns(depID uint64, tokenID uint64, exitableTS uint256)
-func (_PlasmaCash *PlasmaCashCallerSession) GetNextExit() (struct {
+func (_RootChain *RootChainCallerSession) GetNextExit() (struct {
 	DepID      uint64
 	TokenID    uint64
 	ExitableTS *big.Int
 }, error) {
-	return _PlasmaCash.Contract.GetNextExit(&_PlasmaCash.CallOpts)
+	return _RootChain.Contract.GetNextExit(&_RootChain.CallOpts)
 }
 
 // Challenge is a paid mutator transaction binding the contract method 0x31ddf645.
 //
 // Solidity: function challenge(txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) Challenge(opts *bind.TransactOpts, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "challenge", txBytes, proof, blk)
+func (_RootChain *RootChainTransactor) Challenge(opts *bind.TransactOpts, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "challenge", txBytes, proof, blk)
 }
 
 // Challenge is a paid mutator transaction binding the contract method 0x31ddf645.
 //
 // Solidity: function challenge(txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) Challenge(txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Challenge(&_PlasmaCash.TransactOpts, txBytes, proof, blk)
+func (_RootChain *RootChainSession) Challenge(txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.Challenge(&_RootChain.TransactOpts, txBytes, proof, blk)
 }
 
 // Challenge is a paid mutator transaction binding the contract method 0x31ddf645.
 //
 // Solidity: function challenge(txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) Challenge(txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Challenge(&_PlasmaCash.TransactOpts, txBytes, proof, blk)
+func (_RootChain *RootChainTransactorSession) Challenge(txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.Challenge(&_RootChain.TransactOpts, txBytes, proof, blk)
 }
 
 // ChallengeBefore is a paid mutator transaction binding the contract method 0x743098a7.
 //
 // Solidity: function challengeBefore(txBytes bytes, proof bytes, blk uint64, faultyTxBytes bytes, faultyProof bytes, faultyBlk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) ChallengeBefore(opts *bind.TransactOpts, txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "challengeBefore", txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
+func (_RootChain *RootChainTransactor) ChallengeBefore(opts *bind.TransactOpts, txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "challengeBefore", txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
 }
 
 // ChallengeBefore is a paid mutator transaction binding the contract method 0x743098a7.
 //
 // Solidity: function challengeBefore(txBytes bytes, proof bytes, blk uint64, faultyTxBytes bytes, faultyProof bytes, faultyBlk uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) ChallengeBefore(txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.ChallengeBefore(&_PlasmaCash.TransactOpts, txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
+func (_RootChain *RootChainSession) ChallengeBefore(txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.ChallengeBefore(&_RootChain.TransactOpts, txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
 }
 
 // ChallengeBefore is a paid mutator transaction binding the contract method 0x743098a7.
 //
 // Solidity: function challengeBefore(txBytes bytes, proof bytes, blk uint64, faultyTxBytes bytes, faultyProof bytes, faultyBlk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) ChallengeBefore(txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.ChallengeBefore(&_PlasmaCash.TransactOpts, txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
+func (_RootChain *RootChainTransactorSession) ChallengeBefore(txBytes []byte, proof []byte, blk uint64, faultyTxBytes []byte, faultyProof []byte, faultyBlk uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.ChallengeBefore(&_RootChain.TransactOpts, txBytes, proof, blk, faultyTxBytes, faultyProof, faultyBlk)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd0e30db0.
 //
 // Solidity: function deposit() returns()
-func (_PlasmaCash *PlasmaCashTransactor) Deposit(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "deposit")
+func (_RootChain *RootChainTransactor) Deposit(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "deposit")
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd0e30db0.
 //
 // Solidity: function deposit() returns()
-func (_PlasmaCash *PlasmaCashSession) Deposit() (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Deposit(&_PlasmaCash.TransactOpts)
+func (_RootChain *RootChainSession) Deposit() (*types.Transaction, error) {
+	return _RootChain.Contract.Deposit(&_RootChain.TransactOpts)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd0e30db0.
 //
 // Solidity: function deposit() returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) Deposit() (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Deposit(&_PlasmaCash.TransactOpts)
+func (_RootChain *RootChainTransactorSession) Deposit() (*types.Transaction, error) {
+	return _RootChain.Contract.Deposit(&_RootChain.TransactOpts)
 }
 
 // DepositExit is a paid mutator transaction binding the contract method 0x3d2e2590.
 //
 // Solidity: function depositExit(_depositIndex uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) DepositExit(opts *bind.TransactOpts, _depositIndex uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "depositExit", _depositIndex)
+func (_RootChain *RootChainTransactor) DepositExit(opts *bind.TransactOpts, _depositIndex uint64) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "depositExit", _depositIndex)
 }
 
 // DepositExit is a paid mutator transaction binding the contract method 0x3d2e2590.
 //
 // Solidity: function depositExit(_depositIndex uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) DepositExit(_depositIndex uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.DepositExit(&_PlasmaCash.TransactOpts, _depositIndex)
+func (_RootChain *RootChainSession) DepositExit(_depositIndex uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.DepositExit(&_RootChain.TransactOpts, _depositIndex)
 }
 
 // DepositExit is a paid mutator transaction binding the contract method 0x3d2e2590.
 //
 // Solidity: function depositExit(_depositIndex uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) DepositExit(_depositIndex uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.DepositExit(&_PlasmaCash.TransactOpts, _depositIndex)
+func (_RootChain *RootChainTransactorSession) DepositExit(_depositIndex uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.DepositExit(&_RootChain.TransactOpts, _depositIndex)
 }
 
 // FinalizeExits is a paid mutator transaction binding the contract method 0xc6ab44cd.
 //
 // Solidity: function finalizeExits() returns()
-func (_PlasmaCash *PlasmaCashTransactor) FinalizeExits(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "finalizeExits")
+func (_RootChain *RootChainTransactor) FinalizeExits(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "finalizeExits")
 }
 
 // FinalizeExits is a paid mutator transaction binding the contract method 0xc6ab44cd.
 //
 // Solidity: function finalizeExits() returns()
-func (_PlasmaCash *PlasmaCashSession) FinalizeExits() (*types.Transaction, error) {
-	return _PlasmaCash.Contract.FinalizeExits(&_PlasmaCash.TransactOpts)
+func (_RootChain *RootChainSession) FinalizeExits() (*types.Transaction, error) {
+	return _RootChain.Contract.FinalizeExits(&_RootChain.TransactOpts)
 }
 
 // FinalizeExits is a paid mutator transaction binding the contract method 0xc6ab44cd.
 //
 // Solidity: function finalizeExits() returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) FinalizeExits() (*types.Transaction, error) {
-	return _PlasmaCash.Contract.FinalizeExits(&_PlasmaCash.TransactOpts)
+func (_RootChain *RootChainTransactorSession) FinalizeExits() (*types.Transaction, error) {
+	return _RootChain.Contract.FinalizeExits(&_RootChain.TransactOpts)
 }
 
 // Kill is a paid mutator transaction binding the contract method 0x41c0e1b5.
 //
 // Solidity: function kill() returns()
-func (_PlasmaCash *PlasmaCashTransactor) Kill(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "kill")
+func (_RootChain *RootChainTransactor) Kill(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "kill")
 }
 
 // Kill is a paid mutator transaction binding the contract method 0x41c0e1b5.
 //
 // Solidity: function kill() returns()
-func (_PlasmaCash *PlasmaCashSession) Kill() (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Kill(&_PlasmaCash.TransactOpts)
+func (_RootChain *RootChainSession) Kill() (*types.Transaction, error) {
+	return _RootChain.Contract.Kill(&_RootChain.TransactOpts)
 }
 
 // Kill is a paid mutator transaction binding the contract method 0x41c0e1b5.
 //
 // Solidity: function kill() returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) Kill() (*types.Transaction, error) {
-	return _PlasmaCash.Contract.Kill(&_PlasmaCash.TransactOpts)
+func (_RootChain *RootChainTransactorSession) Kill() (*types.Transaction, error) {
+	return _RootChain.Contract.Kill(&_RootChain.TransactOpts)
 }
 
 // StartExit is a paid mutator transaction binding the contract method 0x6a1473ee.
 //
 // Solidity: function startExit(prevTxBytes bytes, prevProof bytes, prevBlk uint64, txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) StartExit(opts *bind.TransactOpts, prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "startExit", prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
+func (_RootChain *RootChainTransactor) StartExit(opts *bind.TransactOpts, prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "startExit", prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
 }
 
 // StartExit is a paid mutator transaction binding the contract method 0x6a1473ee.
 //
 // Solidity: function startExit(prevTxBytes bytes, prevProof bytes, prevBlk uint64, txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) StartExit(prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.StartExit(&_PlasmaCash.TransactOpts, prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
+func (_RootChain *RootChainSession) StartExit(prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.StartExit(&_RootChain.TransactOpts, prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
 }
 
 // StartExit is a paid mutator transaction binding the contract method 0x6a1473ee.
 //
 // Solidity: function startExit(prevTxBytes bytes, prevProof bytes, prevBlk uint64, txBytes bytes, proof bytes, blk uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) StartExit(prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.StartExit(&_PlasmaCash.TransactOpts, prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
+func (_RootChain *RootChainTransactorSession) StartExit(prevTxBytes []byte, prevProof []byte, prevBlk uint64, txBytes []byte, proof []byte, blk uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.StartExit(&_RootChain.TransactOpts, prevTxBytes, prevProof, prevBlk, txBytes, proof, blk)
 }
 
 // SubmitBlock is a paid mutator transaction binding the contract method 0xefcfd072.
 //
 // Solidity: function submitBlock(_blkRoot bytes32, _blknum uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactor) SubmitBlock(opts *bind.TransactOpts, _blkRoot [32]byte, _blknum uint64) (*types.Transaction, error) {
-	return _PlasmaCash.contract.Transact(opts, "submitBlock", _blkRoot, _blknum)
+func (_RootChain *RootChainTransactor) SubmitBlock(opts *bind.TransactOpts, _blkRoot [32]byte, _blknum uint64) (*types.Transaction, error) {
+	return _RootChain.contract.Transact(opts, "submitBlock", _blkRoot, _blknum)
 }
 
 // SubmitBlock is a paid mutator transaction binding the contract method 0xefcfd072.
 //
 // Solidity: function submitBlock(_blkRoot bytes32, _blknum uint64) returns()
-func (_PlasmaCash *PlasmaCashSession) SubmitBlock(_blkRoot [32]byte, _blknum uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.SubmitBlock(&_PlasmaCash.TransactOpts, _blkRoot, _blknum)
+func (_RootChain *RootChainSession) SubmitBlock(_blkRoot [32]byte, _blknum uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.SubmitBlock(&_RootChain.TransactOpts, _blkRoot, _blknum)
 }
 
 // SubmitBlock is a paid mutator transaction binding the contract method 0xefcfd072.
 //
 // Solidity: function submitBlock(_blkRoot bytes32, _blknum uint64) returns()
-func (_PlasmaCash *PlasmaCashTransactorSession) SubmitBlock(_blkRoot [32]byte, _blknum uint64) (*types.Transaction, error) {
-	return _PlasmaCash.Contract.SubmitBlock(&_PlasmaCash.TransactOpts, _blkRoot, _blknum)
+func (_RootChain *RootChainTransactorSession) SubmitBlock(_blkRoot [32]byte, _blknum uint64) (*types.Transaction, error) {
+	return _RootChain.Contract.SubmitBlock(&_RootChain.TransactOpts, _blkRoot, _blknum)
 }
 
-// PlasmaCashChallengeIterator is returned from FilterChallenge and is used to iterate over the raw logs and unpacked data for Challenge events raised by the PlasmaCash contract.
-type PlasmaCashChallengeIterator struct {
-	Event *PlasmaCashChallenge // Event containing the contract specifics and raw log
+// RootChainChallengeIterator is returned from FilterChallenge and is used to iterate over the raw logs and unpacked data for Challenge events raised by the RootChain contract.
+type RootChainChallengeIterator struct {
+	Event *RootChainChallenge // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -588,7 +588,7 @@ type PlasmaCashChallengeIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashChallengeIterator) Next() bool {
+func (it *RootChainChallengeIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -597,7 +597,7 @@ func (it *PlasmaCashChallengeIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashChallenge)
+			it.Event = new(RootChainChallenge)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -612,7 +612,7 @@ func (it *PlasmaCashChallengeIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashChallenge)
+		it.Event = new(RootChainChallenge)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -628,19 +628,19 @@ func (it *PlasmaCashChallengeIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashChallengeIterator) Error() error {
+func (it *RootChainChallengeIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashChallengeIterator) Close() error {
+func (it *RootChainChallengeIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashChallenge represents a Challenge event raised by the PlasmaCash contract.
-type PlasmaCashChallenge struct {
+// RootChainChallenge represents a Challenge event raised by the RootChain contract.
+type RootChainChallenge struct {
 	Challenger common.Address
 	TokenID    uint64
 	Timestamp  *big.Int
@@ -650,7 +650,7 @@ type PlasmaCashChallenge struct {
 // FilterChallenge is a free log retrieval operation binding the contract event 0xf4a2799edd9b2af498a251fd0f07a43047189b7090f3a6290d4e28645ffd4cd9.
 //
 // Solidity: event Challenge(_challenger address, _tokenID indexed uint64, _timestamp indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterChallenge(opts *bind.FilterOpts, _tokenID []uint64, _timestamp []*big.Int) (*PlasmaCashChallengeIterator, error) {
+func (_RootChain *RootChainFilterer) FilterChallenge(opts *bind.FilterOpts, _tokenID []uint64, _timestamp []*big.Int) (*RootChainChallengeIterator, error) {
 
 	var _tokenIDRule []interface{}
 	for _, _tokenIDItem := range _tokenID {
@@ -661,17 +661,17 @@ func (_PlasmaCash *PlasmaCashFilterer) FilterChallenge(opts *bind.FilterOpts, _t
 		_timestampRule = append(_timestampRule, _timestampItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "Challenge", _tokenIDRule, _timestampRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "Challenge", _tokenIDRule, _timestampRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashChallengeIterator{contract: _PlasmaCash.contract, event: "Challenge", logs: logs, sub: sub}, nil
+	return &RootChainChallengeIterator{contract: _RootChain.contract, event: "Challenge", logs: logs, sub: sub}, nil
 }
 
 // WatchChallenge is a free log subscription operation binding the contract event 0xf4a2799edd9b2af498a251fd0f07a43047189b7090f3a6290d4e28645ffd4cd9.
 //
 // Solidity: event Challenge(_challenger address, _tokenID indexed uint64, _timestamp indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchChallenge(opts *bind.WatchOpts, sink chan<- *PlasmaCashChallenge, _tokenID []uint64, _timestamp []*big.Int) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchChallenge(opts *bind.WatchOpts, sink chan<- *RootChainChallenge, _tokenID []uint64, _timestamp []*big.Int) (event.Subscription, error) {
 
 	var _tokenIDRule []interface{}
 	for _, _tokenIDItem := range _tokenID {
@@ -682,7 +682,7 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchChallenge(opts *bind.WatchOpts, sink
 		_timestampRule = append(_timestampRule, _timestampItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "Challenge", _tokenIDRule, _timestampRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "Challenge", _tokenIDRule, _timestampRule)
 	if err != nil {
 		return nil, err
 	}
@@ -692,8 +692,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchChallenge(opts *bind.WatchOpts, sink
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashChallenge)
-				if err := _PlasmaCash.contract.UnpackLog(event, "Challenge", log); err != nil {
+				event := new(RootChainChallenge)
+				if err := _RootChain.contract.UnpackLog(event, "Challenge", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -714,9 +714,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchChallenge(opts *bind.WatchOpts, sink
 	}), nil
 }
 
-// PlasmaCashCurrtentExitIterator is returned from FilterCurrtentExit and is used to iterate over the raw logs and unpacked data for CurrtentExit events raised by the PlasmaCash contract.
-type PlasmaCashCurrtentExitIterator struct {
-	Event *PlasmaCashCurrtentExit // Event containing the contract specifics and raw log
+// RootChainCurrtentExitIterator is returned from FilterCurrtentExit and is used to iterate over the raw logs and unpacked data for CurrtentExit events raised by the RootChain contract.
+type RootChainCurrtentExitIterator struct {
+	Event *RootChainCurrtentExit // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -730,7 +730,7 @@ type PlasmaCashCurrtentExitIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashCurrtentExitIterator) Next() bool {
+func (it *RootChainCurrtentExitIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -739,7 +739,7 @@ func (it *PlasmaCashCurrtentExitIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashCurrtentExit)
+			it.Event = new(RootChainCurrtentExit)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -754,7 +754,7 @@ func (it *PlasmaCashCurrtentExitIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashCurrtentExit)
+		it.Event = new(RootChainCurrtentExit)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -770,19 +770,19 @@ func (it *PlasmaCashCurrtentExitIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashCurrtentExitIterator) Error() error {
+func (it *RootChainCurrtentExitIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashCurrtentExitIterator) Close() error {
+func (it *RootChainCurrtentExitIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashCurrtentExit represents a CurrtentExit event raised by the PlasmaCash contract.
-type PlasmaCashCurrtentExit struct {
+// RootChainCurrtentExit represents a CurrtentExit event raised by the RootChain contract.
+type RootChainCurrtentExit struct {
 	DepID      uint64
 	TokenID    uint64
 	ExitableTS *big.Int
@@ -792,21 +792,21 @@ type PlasmaCashCurrtentExit struct {
 // FilterCurrtentExit is a free log retrieval operation binding the contract event 0xd0c1c7697d3a5f8a4ce2442c9dfebc6c40c0bee361654b5f97169f97dad2723a.
 //
 // Solidity: event CurrtentExit(depID uint64, tokenID uint64, exitableTS uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterCurrtentExit(opts *bind.FilterOpts) (*PlasmaCashCurrtentExitIterator, error) {
+func (_RootChain *RootChainFilterer) FilterCurrtentExit(opts *bind.FilterOpts) (*RootChainCurrtentExitIterator, error) {
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "CurrtentExit")
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "CurrtentExit")
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashCurrtentExitIterator{contract: _PlasmaCash.contract, event: "CurrtentExit", logs: logs, sub: sub}, nil
+	return &RootChainCurrtentExitIterator{contract: _RootChain.contract, event: "CurrtentExit", logs: logs, sub: sub}, nil
 }
 
 // WatchCurrtentExit is a free log subscription operation binding the contract event 0xd0c1c7697d3a5f8a4ce2442c9dfebc6c40c0bee361654b5f97169f97dad2723a.
 //
 // Solidity: event CurrtentExit(depID uint64, tokenID uint64, exitableTS uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchCurrtentExit(opts *bind.WatchOpts, sink chan<- *PlasmaCashCurrtentExit) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchCurrtentExit(opts *bind.WatchOpts, sink chan<- *RootChainCurrtentExit) (event.Subscription, error) {
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "CurrtentExit")
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "CurrtentExit")
 	if err != nil {
 		return nil, err
 	}
@@ -816,8 +816,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchCurrtentExit(opts *bind.WatchOpts, s
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashCurrtentExit)
-				if err := _PlasmaCash.contract.UnpackLog(event, "CurrtentExit", log); err != nil {
+				event := new(RootChainCurrtentExit)
+				if err := _RootChain.contract.UnpackLog(event, "CurrtentExit", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -838,9 +838,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchCurrtentExit(opts *bind.WatchOpts, s
 	}), nil
 }
 
-// PlasmaCashDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the PlasmaCash contract.
-type PlasmaCashDepositIterator struct {
-	Event *PlasmaCashDeposit // Event containing the contract specifics and raw log
+// RootChainDepositIterator is returned from FilterDeposit and is used to iterate over the raw logs and unpacked data for Deposit events raised by the RootChain contract.
+type RootChainDepositIterator struct {
+	Event *RootChainDeposit // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -854,7 +854,7 @@ type PlasmaCashDepositIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashDepositIterator) Next() bool {
+func (it *RootChainDepositIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -863,7 +863,7 @@ func (it *PlasmaCashDepositIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashDeposit)
+			it.Event = new(RootChainDeposit)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -878,7 +878,7 @@ func (it *PlasmaCashDepositIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashDeposit)
+		it.Event = new(RootChainDeposit)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -894,19 +894,19 @@ func (it *PlasmaCashDepositIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashDepositIterator) Error() error {
+func (it *RootChainDepositIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashDepositIterator) Close() error {
+func (it *RootChainDepositIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashDeposit represents a Deposit event raised by the PlasmaCash contract.
-type PlasmaCashDeposit struct {
+// RootChainDeposit represents a Deposit event raised by the RootChain contract.
+type RootChainDeposit struct {
 	Depositor    common.Address
 	DepositIndex uint64
 	Denomination uint64
@@ -917,7 +917,7 @@ type PlasmaCashDeposit struct {
 // FilterDeposit is a free log retrieval operation binding the contract event 0x96d929db0520d785b9981429377486f9182e32225c9a8b9f1b371519644cc68a.
 //
 // Solidity: event Deposit(_depositor address, _depositIndex indexed uint64, _denomination uint64, _tokenID indexed uint64)
-func (_PlasmaCash *PlasmaCashFilterer) FilterDeposit(opts *bind.FilterOpts, _depositIndex []uint64, _tokenID []uint64) (*PlasmaCashDepositIterator, error) {
+func (_RootChain *RootChainFilterer) FilterDeposit(opts *bind.FilterOpts, _depositIndex []uint64, _tokenID []uint64) (*RootChainDepositIterator, error) {
 
 	var _depositIndexRule []interface{}
 	for _, _depositIndexItem := range _depositIndex {
@@ -929,17 +929,17 @@ func (_PlasmaCash *PlasmaCashFilterer) FilterDeposit(opts *bind.FilterOpts, _dep
 		_tokenIDRule = append(_tokenIDRule, _tokenIDItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "Deposit", _depositIndexRule, _tokenIDRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "Deposit", _depositIndexRule, _tokenIDRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashDepositIterator{contract: _PlasmaCash.contract, event: "Deposit", logs: logs, sub: sub}, nil
+	return &RootChainDepositIterator{contract: _RootChain.contract, event: "Deposit", logs: logs, sub: sub}, nil
 }
 
 // WatchDeposit is a free log subscription operation binding the contract event 0x96d929db0520d785b9981429377486f9182e32225c9a8b9f1b371519644cc68a.
 //
 // Solidity: event Deposit(_depositor address, _depositIndex indexed uint64, _denomination uint64, _tokenID indexed uint64)
-func (_PlasmaCash *PlasmaCashFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *PlasmaCashDeposit, _depositIndex []uint64, _tokenID []uint64) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchDeposit(opts *bind.WatchOpts, sink chan<- *RootChainDeposit, _depositIndex []uint64, _tokenID []uint64) (event.Subscription, error) {
 
 	var _depositIndexRule []interface{}
 	for _, _depositIndexItem := range _depositIndex {
@@ -951,7 +951,7 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchDeposit(opts *bind.WatchOpts, sink c
 		_tokenIDRule = append(_tokenIDRule, _tokenIDItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "Deposit", _depositIndexRule, _tokenIDRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "Deposit", _depositIndexRule, _tokenIDRule)
 	if err != nil {
 		return nil, err
 	}
@@ -961,8 +961,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchDeposit(opts *bind.WatchOpts, sink c
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashDeposit)
-				if err := _PlasmaCash.contract.UnpackLog(event, "Deposit", log); err != nil {
+				event := new(RootChainDeposit)
+				if err := _RootChain.contract.UnpackLog(event, "Deposit", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -983,9 +983,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchDeposit(opts *bind.WatchOpts, sink c
 	}), nil
 }
 
-// PlasmaCashExitCompletedIterator is returned from FilterExitCompleted and is used to iterate over the raw logs and unpacked data for ExitCompleted events raised by the PlasmaCash contract.
-type PlasmaCashExitCompletedIterator struct {
-	Event *PlasmaCashExitCompleted // Event containing the contract specifics and raw log
+// RootChainExitCompletedIterator is returned from FilterExitCompleted and is used to iterate over the raw logs and unpacked data for ExitCompleted events raised by the RootChain contract.
+type RootChainExitCompletedIterator struct {
+	Event *RootChainExitCompleted // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -999,7 +999,7 @@ type PlasmaCashExitCompletedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashExitCompletedIterator) Next() bool {
+func (it *RootChainExitCompletedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1008,7 +1008,7 @@ func (it *PlasmaCashExitCompletedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashExitCompleted)
+			it.Event = new(RootChainExitCompleted)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1023,7 +1023,7 @@ func (it *PlasmaCashExitCompletedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashExitCompleted)
+		it.Event = new(RootChainExitCompleted)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1039,19 +1039,19 @@ func (it *PlasmaCashExitCompletedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashExitCompletedIterator) Error() error {
+func (it *RootChainExitCompletedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashExitCompletedIterator) Close() error {
+func (it *RootChainExitCompletedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashExitCompleted represents a ExitCompleted event raised by the PlasmaCash contract.
-type PlasmaCashExitCompleted struct {
+// RootChainExitCompleted represents a ExitCompleted event raised by the RootChain contract.
+type RootChainExitCompleted struct {
 	Priority *big.Int
 	Raw      types.Log // Blockchain specific contextual infos
 }
@@ -1059,31 +1059,31 @@ type PlasmaCashExitCompleted struct {
 // FilterExitCompleted is a free log retrieval operation binding the contract event 0xd9e811ef520eaecd3949de532960c72eda128c01bc3f2981aa414b511b157849.
 //
 // Solidity: event ExitCompleted(_priority indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterExitCompleted(opts *bind.FilterOpts, _priority []*big.Int) (*PlasmaCashExitCompletedIterator, error) {
+func (_RootChain *RootChainFilterer) FilterExitCompleted(opts *bind.FilterOpts, _priority []*big.Int) (*RootChainExitCompletedIterator, error) {
 
 	var _priorityRule []interface{}
 	for _, _priorityItem := range _priority {
 		_priorityRule = append(_priorityRule, _priorityItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "ExitCompleted", _priorityRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "ExitCompleted", _priorityRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashExitCompletedIterator{contract: _PlasmaCash.contract, event: "ExitCompleted", logs: logs, sub: sub}, nil
+	return &RootChainExitCompletedIterator{contract: _RootChain.contract, event: "ExitCompleted", logs: logs, sub: sub}, nil
 }
 
 // WatchExitCompleted is a free log subscription operation binding the contract event 0xd9e811ef520eaecd3949de532960c72eda128c01bc3f2981aa414b511b157849.
 //
 // Solidity: event ExitCompleted(_priority indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchExitCompleted(opts *bind.WatchOpts, sink chan<- *PlasmaCashExitCompleted, _priority []*big.Int) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchExitCompleted(opts *bind.WatchOpts, sink chan<- *RootChainExitCompleted, _priority []*big.Int) (event.Subscription, error) {
 
 	var _priorityRule []interface{}
 	for _, _priorityItem := range _priority {
 		_priorityRule = append(_priorityRule, _priorityItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "ExitCompleted", _priorityRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "ExitCompleted", _priorityRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1093,8 +1093,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchExitCompleted(opts *bind.WatchOpts, 
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashExitCompleted)
-				if err := _PlasmaCash.contract.UnpackLog(event, "ExitCompleted", log); err != nil {
+				event := new(RootChainExitCompleted)
+				if err := _RootChain.contract.UnpackLog(event, "ExitCompleted", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1115,9 +1115,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchExitCompleted(opts *bind.WatchOpts, 
 	}), nil
 }
 
-// PlasmaCashExitStartedIterator is returned from FilterExitStarted and is used to iterate over the raw logs and unpacked data for ExitStarted events raised by the PlasmaCash contract.
-type PlasmaCashExitStartedIterator struct {
-	Event *PlasmaCashExitStarted // Event containing the contract specifics and raw log
+// RootChainExitStartedIterator is returned from FilterExitStarted and is used to iterate over the raw logs and unpacked data for ExitStarted events raised by the RootChain contract.
+type RootChainExitStartedIterator struct {
+	Event *RootChainExitStarted // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1131,7 +1131,7 @@ type PlasmaCashExitStartedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashExitStartedIterator) Next() bool {
+func (it *RootChainExitStartedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1140,7 +1140,7 @@ func (it *PlasmaCashExitStartedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashExitStarted)
+			it.Event = new(RootChainExitStarted)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1155,7 +1155,7 @@ func (it *PlasmaCashExitStartedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashExitStarted)
+		it.Event = new(RootChainExitStarted)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1171,19 +1171,19 @@ func (it *PlasmaCashExitStartedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashExitStartedIterator) Error() error {
+func (it *RootChainExitStartedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashExitStartedIterator) Close() error {
+func (it *RootChainExitStartedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashExitStarted represents a ExitStarted event raised by the PlasmaCash contract.
-type PlasmaCashExitStarted struct {
+// RootChainExitStarted represents a ExitStarted event raised by the RootChain contract.
+type RootChainExitStarted struct {
 	Priority *big.Int
 	Raw      types.Log // Blockchain specific contextual infos
 }
@@ -1191,31 +1191,31 @@ type PlasmaCashExitStarted struct {
 // FilterExitStarted is a free log retrieval operation binding the contract event 0x2e6c46902e4864b15d699069473ce23cfcd871fa89d450c6049ce12399fe2f92.
 //
 // Solidity: event ExitStarted(_priority indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterExitStarted(opts *bind.FilterOpts, _priority []*big.Int) (*PlasmaCashExitStartedIterator, error) {
+func (_RootChain *RootChainFilterer) FilterExitStarted(opts *bind.FilterOpts, _priority []*big.Int) (*RootChainExitStartedIterator, error) {
 
 	var _priorityRule []interface{}
 	for _, _priorityItem := range _priority {
 		_priorityRule = append(_priorityRule, _priorityItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "ExitStarted", _priorityRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "ExitStarted", _priorityRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashExitStartedIterator{contract: _PlasmaCash.contract, event: "ExitStarted", logs: logs, sub: sub}, nil
+	return &RootChainExitStartedIterator{contract: _RootChain.contract, event: "ExitStarted", logs: logs, sub: sub}, nil
 }
 
 // WatchExitStarted is a free log subscription operation binding the contract event 0x2e6c46902e4864b15d699069473ce23cfcd871fa89d450c6049ce12399fe2f92.
 //
 // Solidity: event ExitStarted(_priority indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchExitStarted(opts *bind.WatchOpts, sink chan<- *PlasmaCashExitStarted, _priority []*big.Int) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchExitStarted(opts *bind.WatchOpts, sink chan<- *RootChainExitStarted, _priority []*big.Int) (event.Subscription, error) {
 
 	var _priorityRule []interface{}
 	for _, _priorityItem := range _priority {
 		_priorityRule = append(_priorityRule, _priorityItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "ExitStarted", _priorityRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "ExitStarted", _priorityRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1225,8 +1225,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchExitStarted(opts *bind.WatchOpts, si
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashExitStarted)
-				if err := _PlasmaCash.contract.UnpackLog(event, "ExitStarted", log); err != nil {
+				event := new(RootChainExitStarted)
+				if err := _RootChain.contract.UnpackLog(event, "ExitStarted", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1247,9 +1247,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchExitStarted(opts *bind.WatchOpts, si
 	}), nil
 }
 
-// PlasmaCashExitTimeIterator is returned from FilterExitTime and is used to iterate over the raw logs and unpacked data for ExitTime events raised by the PlasmaCash contract.
-type PlasmaCashExitTimeIterator struct {
-	Event *PlasmaCashExitTime // Event containing the contract specifics and raw log
+// RootChainExitTimeIterator is returned from FilterExitTime and is used to iterate over the raw logs and unpacked data for ExitTime events raised by the RootChain contract.
+type RootChainExitTimeIterator struct {
+	Event *RootChainExitTime // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1263,7 +1263,7 @@ type PlasmaCashExitTimeIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashExitTimeIterator) Next() bool {
+func (it *RootChainExitTimeIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1272,7 +1272,7 @@ func (it *PlasmaCashExitTimeIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashExitTime)
+			it.Event = new(RootChainExitTime)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1287,7 +1287,7 @@ func (it *PlasmaCashExitTimeIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashExitTime)
+		it.Event = new(RootChainExitTime)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1303,19 +1303,19 @@ func (it *PlasmaCashExitTimeIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashExitTimeIterator) Error() error {
+func (it *RootChainExitTimeIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashExitTimeIterator) Close() error {
+func (it *RootChainExitTimeIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashExitTime represents a ExitTime event raised by the PlasmaCash contract.
-type PlasmaCashExitTime struct {
+// RootChainExitTime represents a ExitTime event raised by the RootChain contract.
+type RootChainExitTime struct {
 	ExitableTS *big.Int
 	CuurrentTS *big.Int
 	Raw        types.Log // Blockchain specific contextual infos
@@ -1324,21 +1324,21 @@ type PlasmaCashExitTime struct {
 // FilterExitTime is a free log retrieval operation binding the contract event 0x05b05d48f45d9984a4696f7e1cb5b91fc5cd1e4420b57db43b82a9b97dccfa6a.
 //
 // Solidity: event ExitTime(exitableTS uint256, cuurrentTS uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterExitTime(opts *bind.FilterOpts) (*PlasmaCashExitTimeIterator, error) {
+func (_RootChain *RootChainFilterer) FilterExitTime(opts *bind.FilterOpts) (*RootChainExitTimeIterator, error) {
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "ExitTime")
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "ExitTime")
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashExitTimeIterator{contract: _PlasmaCash.contract, event: "ExitTime", logs: logs, sub: sub}, nil
+	return &RootChainExitTimeIterator{contract: _RootChain.contract, event: "ExitTime", logs: logs, sub: sub}, nil
 }
 
 // WatchExitTime is a free log subscription operation binding the contract event 0x05b05d48f45d9984a4696f7e1cb5b91fc5cd1e4420b57db43b82a9b97dccfa6a.
 //
 // Solidity: event ExitTime(exitableTS uint256, cuurrentTS uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchExitTime(opts *bind.WatchOpts, sink chan<- *PlasmaCashExitTime) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchExitTime(opts *bind.WatchOpts, sink chan<- *RootChainExitTime) (event.Subscription, error) {
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "ExitTime")
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "ExitTime")
 	if err != nil {
 		return nil, err
 	}
@@ -1348,8 +1348,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchExitTime(opts *bind.WatchOpts, sink 
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashExitTime)
-				if err := _PlasmaCash.contract.UnpackLog(event, "ExitTime", log); err != nil {
+				event := new(RootChainExitTime)
+				if err := _RootChain.contract.UnpackLog(event, "ExitTime", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1370,9 +1370,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchExitTime(opts *bind.WatchOpts, sink 
 	}), nil
 }
 
-// PlasmaCashFinalizedExitIterator is returned from FilterFinalizedExit and is used to iterate over the raw logs and unpacked data for FinalizedExit events raised by the PlasmaCash contract.
-type PlasmaCashFinalizedExitIterator struct {
-	Event *PlasmaCashFinalizedExit // Event containing the contract specifics and raw log
+// RootChainFinalizedExitIterator is returned from FilterFinalizedExit and is used to iterate over the raw logs and unpacked data for FinalizedExit events raised by the RootChain contract.
+type RootChainFinalizedExitIterator struct {
+	Event *RootChainFinalizedExit // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1386,7 +1386,7 @@ type PlasmaCashFinalizedExitIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashFinalizedExitIterator) Next() bool {
+func (it *RootChainFinalizedExitIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1395,7 +1395,7 @@ func (it *PlasmaCashFinalizedExitIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashFinalizedExit)
+			it.Event = new(RootChainFinalizedExit)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1410,7 +1410,7 @@ func (it *PlasmaCashFinalizedExitIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashFinalizedExit)
+		it.Event = new(RootChainFinalizedExit)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1426,19 +1426,19 @@ func (it *PlasmaCashFinalizedExitIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashFinalizedExitIterator) Error() error {
+func (it *RootChainFinalizedExitIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashFinalizedExitIterator) Close() error {
+func (it *RootChainFinalizedExitIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashFinalizedExit represents a FinalizedExit event raised by the PlasmaCash contract.
-type PlasmaCashFinalizedExit struct {
+// RootChainFinalizedExit represents a FinalizedExit event raised by the RootChain contract.
+type RootChainFinalizedExit struct {
 	Exiter       common.Address
 	DepositIndex uint64
 	Denomination uint64
@@ -1450,7 +1450,7 @@ type PlasmaCashFinalizedExit struct {
 // FilterFinalizedExit is a free log retrieval operation binding the contract event 0xe109ec77e392bf51e903e88a71fb4158aac7a024428a47f4b7c9fdf334abb362.
 //
 // Solidity: event FinalizedExit(_exiter address, _depositIndex indexed uint64, _denomination uint64, _tokenID indexed uint64, _timestamp indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterFinalizedExit(opts *bind.FilterOpts, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (*PlasmaCashFinalizedExitIterator, error) {
+func (_RootChain *RootChainFilterer) FilterFinalizedExit(opts *bind.FilterOpts, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (*RootChainFinalizedExitIterator, error) {
 
 	var _depositIndexRule []interface{}
 	for _, _depositIndexItem := range _depositIndex {
@@ -1466,17 +1466,17 @@ func (_PlasmaCash *PlasmaCashFilterer) FilterFinalizedExit(opts *bind.FilterOpts
 		_timestampRule = append(_timestampRule, _timestampItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "FinalizedExit", _depositIndexRule, _tokenIDRule, _timestampRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "FinalizedExit", _depositIndexRule, _tokenIDRule, _timestampRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashFinalizedExitIterator{contract: _PlasmaCash.contract, event: "FinalizedExit", logs: logs, sub: sub}, nil
+	return &RootChainFinalizedExitIterator{contract: _RootChain.contract, event: "FinalizedExit", logs: logs, sub: sub}, nil
 }
 
 // WatchFinalizedExit is a free log subscription operation binding the contract event 0xe109ec77e392bf51e903e88a71fb4158aac7a024428a47f4b7c9fdf334abb362.
 //
 // Solidity: event FinalizedExit(_exiter address, _depositIndex indexed uint64, _denomination uint64, _tokenID indexed uint64, _timestamp indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchFinalizedExit(opts *bind.WatchOpts, sink chan<- *PlasmaCashFinalizedExit, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchFinalizedExit(opts *bind.WatchOpts, sink chan<- *RootChainFinalizedExit, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (event.Subscription, error) {
 
 	var _depositIndexRule []interface{}
 	for _, _depositIndexItem := range _depositIndex {
@@ -1492,7 +1492,7 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchFinalizedExit(opts *bind.WatchOpts, 
 		_timestampRule = append(_timestampRule, _timestampItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "FinalizedExit", _depositIndexRule, _tokenIDRule, _timestampRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "FinalizedExit", _depositIndexRule, _tokenIDRule, _timestampRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1502,8 +1502,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchFinalizedExit(opts *bind.WatchOpts, 
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashFinalizedExit)
-				if err := _PlasmaCash.contract.UnpackLog(event, "FinalizedExit", log); err != nil {
+				event := new(RootChainFinalizedExit)
+				if err := _RootChain.contract.UnpackLog(event, "FinalizedExit", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1524,9 +1524,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchFinalizedExit(opts *bind.WatchOpts, 
 	}), nil
 }
 
-// PlasmaCashPublishedBlockIterator is returned from FilterPublishedBlock and is used to iterate over the raw logs and unpacked data for PublishedBlock events raised by the PlasmaCash contract.
-type PlasmaCashPublishedBlockIterator struct {
-	Event *PlasmaCashPublishedBlock // Event containing the contract specifics and raw log
+// RootChainPublishedBlockIterator is returned from FilterPublishedBlock and is used to iterate over the raw logs and unpacked data for PublishedBlock events raised by the RootChain contract.
+type RootChainPublishedBlockIterator struct {
+	Event *RootChainPublishedBlock // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1540,7 +1540,7 @@ type PlasmaCashPublishedBlockIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashPublishedBlockIterator) Next() bool {
+func (it *RootChainPublishedBlockIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1549,7 +1549,7 @@ func (it *PlasmaCashPublishedBlockIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashPublishedBlock)
+			it.Event = new(RootChainPublishedBlock)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1564,7 +1564,7 @@ func (it *PlasmaCashPublishedBlockIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashPublishedBlock)
+		it.Event = new(RootChainPublishedBlock)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1580,19 +1580,19 @@ func (it *PlasmaCashPublishedBlockIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashPublishedBlockIterator) Error() error {
+func (it *RootChainPublishedBlockIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashPublishedBlockIterator) Close() error {
+func (it *RootChainPublishedBlockIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashPublishedBlock represents a PublishedBlock event raised by the PlasmaCash contract.
-type PlasmaCashPublishedBlock struct {
+// RootChainPublishedBlock represents a PublishedBlock event raised by the RootChain contract.
+type RootChainPublishedBlock struct {
 	RootHash            [32]byte
 	Blknum              uint64
 	CurrentDepositIndex uint64
@@ -1602,7 +1602,7 @@ type PlasmaCashPublishedBlock struct {
 // FilterPublishedBlock is a free log retrieval operation binding the contract event 0xafb4a42a2439df06ac89ceace483c1382c37f9574eb7d217050bc54a63a33811.
 //
 // Solidity: event PublishedBlock(_rootHash bytes32, _blknum indexed uint64, _currentDepositIndex indexed uint64)
-func (_PlasmaCash *PlasmaCashFilterer) FilterPublishedBlock(opts *bind.FilterOpts, _blknum []uint64, _currentDepositIndex []uint64) (*PlasmaCashPublishedBlockIterator, error) {
+func (_RootChain *RootChainFilterer) FilterPublishedBlock(opts *bind.FilterOpts, _blknum []uint64, _currentDepositIndex []uint64) (*RootChainPublishedBlockIterator, error) {
 
 	var _blknumRule []interface{}
 	for _, _blknumItem := range _blknum {
@@ -1613,17 +1613,17 @@ func (_PlasmaCash *PlasmaCashFilterer) FilterPublishedBlock(opts *bind.FilterOpt
 		_currentDepositIndexRule = append(_currentDepositIndexRule, _currentDepositIndexItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "PublishedBlock", _blknumRule, _currentDepositIndexRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "PublishedBlock", _blknumRule, _currentDepositIndexRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashPublishedBlockIterator{contract: _PlasmaCash.contract, event: "PublishedBlock", logs: logs, sub: sub}, nil
+	return &RootChainPublishedBlockIterator{contract: _RootChain.contract, event: "PublishedBlock", logs: logs, sub: sub}, nil
 }
 
 // WatchPublishedBlock is a free log subscription operation binding the contract event 0xafb4a42a2439df06ac89ceace483c1382c37f9574eb7d217050bc54a63a33811.
 //
 // Solidity: event PublishedBlock(_rootHash bytes32, _blknum indexed uint64, _currentDepositIndex indexed uint64)
-func (_PlasmaCash *PlasmaCashFilterer) WatchPublishedBlock(opts *bind.WatchOpts, sink chan<- *PlasmaCashPublishedBlock, _blknum []uint64, _currentDepositIndex []uint64) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchPublishedBlock(opts *bind.WatchOpts, sink chan<- *RootChainPublishedBlock, _blknum []uint64, _currentDepositIndex []uint64) (event.Subscription, error) {
 
 	var _blknumRule []interface{}
 	for _, _blknumItem := range _blknum {
@@ -1634,7 +1634,7 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchPublishedBlock(opts *bind.WatchOpts,
 		_currentDepositIndexRule = append(_currentDepositIndexRule, _currentDepositIndexItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "PublishedBlock", _blknumRule, _currentDepositIndexRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "PublishedBlock", _blknumRule, _currentDepositIndexRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1644,8 +1644,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchPublishedBlock(opts *bind.WatchOpts,
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashPublishedBlock)
-				if err := _PlasmaCash.contract.UnpackLog(event, "PublishedBlock", log); err != nil {
+				event := new(RootChainPublishedBlock)
+				if err := _RootChain.contract.UnpackLog(event, "PublishedBlock", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1666,9 +1666,9 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchPublishedBlock(opts *bind.WatchOpts,
 	}), nil
 }
 
-// PlasmaCashStartExitIterator is returned from FilterStartExit and is used to iterate over the raw logs and unpacked data for StartExit events raised by the PlasmaCash contract.
-type PlasmaCashStartExitIterator struct {
-	Event *PlasmaCashStartExit // Event containing the contract specifics and raw log
+// RootChainStartExitIterator is returned from FilterStartExit and is used to iterate over the raw logs and unpacked data for StartExit events raised by the RootChain contract.
+type RootChainStartExitIterator struct {
+	Event *RootChainStartExit // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1682,7 +1682,7 @@ type PlasmaCashStartExitIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *PlasmaCashStartExitIterator) Next() bool {
+func (it *RootChainStartExitIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1691,7 +1691,7 @@ func (it *PlasmaCashStartExitIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(PlasmaCashStartExit)
+			it.Event = new(RootChainStartExit)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1706,7 +1706,7 @@ func (it *PlasmaCashStartExitIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(PlasmaCashStartExit)
+		it.Event = new(RootChainStartExit)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1722,19 +1722,19 @@ func (it *PlasmaCashStartExitIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *PlasmaCashStartExitIterator) Error() error {
+func (it *RootChainStartExitIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *PlasmaCashStartExitIterator) Close() error {
+func (it *RootChainStartExitIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// PlasmaCashStartExit represents a StartExit event raised by the PlasmaCash contract.
-type PlasmaCashStartExit struct {
+// RootChainStartExit represents a StartExit event raised by the RootChain contract.
+type RootChainStartExit struct {
 	Exiter       common.Address
 	DepositIndex uint64
 	Denomination uint64
@@ -1746,7 +1746,7 @@ type PlasmaCashStartExit struct {
 // FilterStartExit is a free log retrieval operation binding the contract event 0x6b75ed42e8219410363fb31fa601dea7c8b3549bfc9428b1eeaf53a6226cb668.
 //
 // Solidity: event StartExit(_exiter address, _depositIndex indexed uint64, _denomination uint64, _tokenID indexed uint64, _timestamp indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) FilterStartExit(opts *bind.FilterOpts, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (*PlasmaCashStartExitIterator, error) {
+func (_RootChain *RootChainFilterer) FilterStartExit(opts *bind.FilterOpts, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (*RootChainStartExitIterator, error) {
 
 	var _depositIndexRule []interface{}
 	for _, _depositIndexItem := range _depositIndex {
@@ -1762,17 +1762,17 @@ func (_PlasmaCash *PlasmaCashFilterer) FilterStartExit(opts *bind.FilterOpts, _d
 		_timestampRule = append(_timestampRule, _timestampItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.FilterLogs(opts, "StartExit", _depositIndexRule, _tokenIDRule, _timestampRule)
+	logs, sub, err := _RootChain.contract.FilterLogs(opts, "StartExit", _depositIndexRule, _tokenIDRule, _timestampRule)
 	if err != nil {
 		return nil, err
 	}
-	return &PlasmaCashStartExitIterator{contract: _PlasmaCash.contract, event: "StartExit", logs: logs, sub: sub}, nil
+	return &RootChainStartExitIterator{contract: _RootChain.contract, event: "StartExit", logs: logs, sub: sub}, nil
 }
 
 // WatchStartExit is a free log subscription operation binding the contract event 0x6b75ed42e8219410363fb31fa601dea7c8b3549bfc9428b1eeaf53a6226cb668.
 //
 // Solidity: event StartExit(_exiter address, _depositIndex indexed uint64, _denomination uint64, _tokenID indexed uint64, _timestamp indexed uint256)
-func (_PlasmaCash *PlasmaCashFilterer) WatchStartExit(opts *bind.WatchOpts, sink chan<- *PlasmaCashStartExit, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (event.Subscription, error) {
+func (_RootChain *RootChainFilterer) WatchStartExit(opts *bind.WatchOpts, sink chan<- *RootChainStartExit, _depositIndex []uint64, _tokenID []uint64, _timestamp []*big.Int) (event.Subscription, error) {
 
 	var _depositIndexRule []interface{}
 	for _, _depositIndexItem := range _depositIndex {
@@ -1788,7 +1788,7 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchStartExit(opts *bind.WatchOpts, sink
 		_timestampRule = append(_timestampRule, _timestampItem)
 	}
 
-	logs, sub, err := _PlasmaCash.contract.WatchLogs(opts, "StartExit", _depositIndexRule, _tokenIDRule, _timestampRule)
+	logs, sub, err := _RootChain.contract.WatchLogs(opts, "StartExit", _depositIndexRule, _tokenIDRule, _timestampRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1798,8 +1798,8 @@ func (_PlasmaCash *PlasmaCashFilterer) WatchStartExit(opts *bind.WatchOpts, sink
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(PlasmaCashStartExit)
-				if err := _PlasmaCash.contract.UnpackLog(event, "StartExit", log); err != nil {
+				event := new(RootChainStartExit)
+				if err := _RootChain.contract.UnpackLog(event, "StartExit", log); err != nil {
 					return err
 				}
 				event.Raw = log

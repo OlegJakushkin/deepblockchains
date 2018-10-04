@@ -21,13 +21,13 @@
  */
 
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 import "./Libraries/Transaction.sol";
 import "./Libraries/PriorityQueue.sol";
 import "./Libraries/SparseMerkle.sol";
 
-contract PlasmaCash {
+contract RootChain {
 
     event Deposit(address _depositor, uint64 indexed _depositIndex, uint64 _denomination,  uint64 indexed _tokenID);
     event StartExit(address _exiter, uint64 indexed _depositIndex, uint64 _denomination, uint64 indexed _tokenID, uint256 indexed _timestamp);

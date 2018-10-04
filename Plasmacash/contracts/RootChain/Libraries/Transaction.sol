@@ -22,7 +22,7 @@
  * @dev This library handles PlasmaTx RLP encode/decode and verifies signature on chain
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 import './RLP.sol';
 import './RLPEncode.sol';
