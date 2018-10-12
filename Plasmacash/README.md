@@ -42,9 +42,9 @@ Most significantly, we have made our plasma both stateful and stateless!
 
 ## Contract Interface
 
-* [PlasmaTx Debug Tool](https://rinkeby.etherscan.io/address/0x6031cb0df4f300d53f7256e818af51f0243a354f#readContract): The library handles PlasmaTx RLP encode/decode and verifies a PlasmaTx's validity by checking (1) recipient matches with depositor when prevBlock is 0 or (2) signer matches with prevOwner otherwise. Additional helper functions have been provided in this contract but not used in production code.  
+* [PlasmaTx Debug Tool](https://rinkeby.etherscan.io/address/0x36150061b09da5304cc4ca6fe3a1c9888bd6561a#readContract): The library handles PlasmaTx RLP encode/decode and verifies a PlasmaTx's validity by checking (1) recipient matches with depositor when prevBlock is 0 or (2) signer matches with prevOwner otherwise. Additional helper functions have been provided in this contract but not used in production code.  
 
-* [AnchorTx Debug Tool](https://rinkeby.etherscan.io/address/0x142d098956c8ef798d5c6d0c3c270374e025fac7#readContract): The library handles AnchorTx and Extra struct RLP encode/decode on chain. Additional helper functions have been provided in this contract but not used in production code.
+* [AnchorTx Debug Tool](https://rinkeby.etherscan.io/address/0x0037a175040810d45b94373152ee6660f57ee40d#readContract): The library handles AnchorTx and Extra struct RLP encode/decode on chain. Additional helper functions have been provided in this contract but not used in production code.
 
 * [SparseMerkle Tree](https://rinkeby.etherscan.io/address/0xda4d188831b6c67140cefec35f540bacd87ba526#readContract): This contract is implemented based on [succinct sparse merkle proof format](https://ethresear.ch/t/plasma-cash-with-sparse-merkle-trees-bloom-filters-and-probabilistic-transfers) we published on ethresearch.
 
@@ -78,8 +78,8 @@ Run "./build/bin/plasma" to launch plasma.
 
 To start plasma nodes:
 ```
-# Run POA plasma node, starting RPC services at port 8502
-$ ./build/bin/plasma --datadir /tmp/datadir3 --plasma.datadir /tmp/plasma3 --port 30303  --verbosity 4 --rpc --rpcaddr "localhost" --rpcport 8502 --rpcapi "personal,db,eth,net,web3,swarmdb,plasma"
+# Run POA plasma node, starting RPC services at port 8505
+$ ./build/bin/plasma --datadir /tmp/datadir3 --plasma.datadir /tmp/plasma3 --port 30303  --verbosity 4 --rpc --rpcaddr "localhost" --rpcport 8505 --rpcapi "personal,db,eth,net,web3,swarmdb,plasma"
 
 # [Optional] Run multiple plasma nodes, peer with master, neighbors, etc.
 $ ./build/bin/plasma --datadir /tmp/datadir4 --plasma.datadir /tmp/plasma4 --port 30304  --verbosity 4
@@ -90,11 +90,11 @@ $ ./build/bin/plasma --datadir /tmp/datadir7 --plasma.datadir /tmp/plasma7 --por
 # [experimental] use --raft flag to run start a permissioned network
 
 # If successful, the node will start off with some sample deposits
-Deposit:  TokenID b437230feb2d24db | Denomination 1000000000000000000 | DepositIndex 0  (Depositor: 0xA45b77a98E2B840617e2eC6ddfBf71403bdCb683, TxHash: 0x75e0a5931a9bbcca8f307aabc08e9e452d08e740a02fc1734e6985e62ce95b8b)
-Deposit:  TokenID 37b01bd3adfc4ef3 | Denomination 1000000000000000000 | DepositIndex 1  (Depositor: 0x82Da88C31E874C678D529ad51E43De3A4BAF3914, TxHash: 0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2)
-Deposit:  TokenID b76883d225414136 | Denomination 2000000000000000000 | DepositIndex 2  (Depositor: 0x3088666E05794d2498D9d98326c1b426c9950767, TxHash: 0xfba309f78744708016b3b5a8d671ee6304450669e08ec32359e571e08a469ab7)
-Deposit:  TokenID 9af84bc1208918b  | Denomination 3000000000000000000 | DepositIndex 3  (Depositor: 0xBef06CC63C8f81128c26efeDD461A9124298092b, TxHash: 0xcf44df93b0d3d3f72cb3ccfbc5287270d6cfc8e7753c8bfd2453712924796e9c)
-Deposit:  TokenID 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6, TxHash: 0xaec9f6679e1ef9658bb852053c7ad35962641bb05e639e6fc582e6d8fae1c218)
+Deposit:  TokenID b437230feb2d24db | Denomination 1000000000000000000 | DepositIndex 0  (Depositor: 0xA45b77a98E2B840617e2eC6ddfBf71403bdCb683, TxHash: 0xd7e629ac78805d54faea00fd64e08af4d88c511827aa9ef7f5ead3945d7a527b)
+Deposit:  TokenID 37b01bd3adfc4ef3 | Denomination 1000000000000000000 | DepositIndex 1  (Depositor: 0x82Da88C31E874C678D529ad51E43De3A4BAF3914, TxHash: 0x953285f46c56bf5c1f70a0d811b2ddf6ae00ea962f521f1ba20c7dd47d0c2b6f)
+Deposit:  TokenID b76883d225414136 | Denomination 2000000000000000000 | DepositIndex 2  (Depositor: 0x3088666E05794d2498D9d98326c1b426c9950767, TxHash: 0xc2b98414a0261c7e4cdcf10e3b459501f78d69a626e09d6acf82189fdce57bac)
+Deposit:  TokenID 09af84bc1208918b | Denomination 3000000000000000000 | DepositIndex 3  (Depositor: 0xBef06CC63C8f81128c26efeDD461A9124298092b, TxHash: 0x4fdcebb3247a9a715e416e68439e563e8faf57c804642441b93724d5b4fe0878)
+Deposit:  TokenID 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6, TxHash: 0xa268b3f36d3bbdb30b549f99fe0f7e7c35a2cd9598518a0c3116aa3ddc8fd68d)
 ...
 ```
 *Note*: [wolk-Plasma core](https://github.com/wolkdb/plasma) backend are yet to be released after security audit.
@@ -131,7 +131,7 @@ Currently, Public JSON-RPC API support the following functions:
     tokens: ["0xb76883d225414136"]
 }
 
-curl -X POST --data  '{"jsonrpc":"2.0","id":"1","method":"plasma_getPlasmaBalance","params":["0x3088666E05794d2498D9d98326c1b426c9950767","latest"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"1","method":"plasma_getPlasmaBalance","params":["0x3088666E05794d2498D9d98326c1b426c9950767","latest"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "1",
@@ -154,12 +154,14 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"1","method":"plasma_getPlasmaBalanc
     allowance: 0,
     balance: 1000000000000000000,
     denomination: 1000000000000000000,
+    depositIndex: 1,
     owner: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
     prevBlock: 1,
-    spent: 0
+    spent: 0,
+    tokenID: "0x37b01bd3adfc4ef3"
 }
 
-curl -X POST --data  '{"jsonrpc":"2.0","id":"2","method":"plasma_getPlasmaToken","params":["0x37b01bd3adfc4ef3","0x1"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"2","method":"plasma_getPlasmaToken","params":["0x37b01bd3adfc4ef3","0x1"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "2",
@@ -171,11 +173,17 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"2","method":"plasma_getPlasmaToken"
             "balance": "0xde0b6b3a7640000",
             "allowance": "0x0",
             "spent": "0x0"
+        },
+        "tokenInfo": {
+            "depositIndex": "0x1",
+            "denomination": "0xde0b6b3a7640000",
+            "depositor": "0x82da88c31e874c678d529ad51e43de3a4baf3914",
+            "tokenID": "0x37b01bd3adfc4ef3"
         }
     }
 }
 
-*Note: TokenInfo SMT trie is not exposed to external API
+*Note: The API returns Token(dynamic), and TokenInfo(static) struct
 ```
 
 * `getPlasmaBlock(blockNumber uint64|tag)` - get Plasma BlockInfo by blockNumber. Every Plasma block contains rootHash for each tries, which can be used to verify state transition and incoming token transfer. {`tokenRoot`, `accountRoot`, `l3ChainRoot`} are persisted roots that contain the latest full state, whereas {`transactionRoot`,`anchorRoot`} are built independently and sparse at every block. An empty SMT trie will have Root: `0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff` as level 64 DefaultHash.
@@ -188,33 +196,33 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"2","method":"plasma_getPlasmaToken"
     anchorRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
     blockNumber: "0x1",
     bloomID: "0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0",
-    headerHash: "0xd14908cd79e370e4e885723cc1c9dae26c01ab3a227b14278ae989a9afa7d822",
+    headerHash: "0xb552a637d7be42099cce57e6066d982507abceceb3984346d14240cb2bbb0442",
     l3ChainRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-    parentHash: "0x0000000000000000000000000000000000000000000000000000000000000000",
-    sig: "0x1df1f4c3ff9416e6c91b37c2d4052a0f3bed4075c77d0d8751076c11a3e0c44108e5c094d5720034823812ff3e42475a94bd6d13c067780d640bb9e5fd72cf7000",
-    time: "0x5b85da89",
+    parentHash: "0x0aa4a98f607a18281ac968af64de7dec95615be72131c7c6c3152b59605d5da7",
+    sig: "0xfe0459186a677fee2180bea65548fab50486a2700c697489706b935e5d62ea8d560a57741883f3db7e5d67814eb844f294bf9fdee025ea4776507dc0a7ba11a101",
+    time: "0x5bbfd44f",
     tokenRoot: "0x3d3419dee60f8cc5a0130ed16b09561bdd41b6799245e26ffa43544269a4bebc",
-    transactionRoot: "0x5348248ba49f2802573cf7a942f24ab2cc330f0ec1e9113e121cd049833bbea5"
+    transactionRoot: "0x47671e5902ab9767b5915ea3402084280e689505e037897523e7bca6e90e733c"
   }
 }
 
-curl -X POST --data  '{"jsonrpc":"2.0","id":"3","method":"plasma_getPlasmaBlock","params":["0x1"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"3","method":"plasma_getPlasmaBlock","params":["0x1"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "3",
     "result": {
         "block": {
-            "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "parentHash": "0x0aa4a98f607a18281ac968af64de7dec95615be72131c7c6c3152b59605d5da7",
             "blockNumber": "0x1",
-            "time": "0x5b85da89",
+            "time": "0x5bbfd44f",
             "bloomID": "0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0",
-            "transactionRoot": "0x5348248ba49f2802573cf7a942f24ab2cc330f0ec1e9113e121cd049833bbea5",
+            "transactionRoot": "0x47671e5902ab9767b5915ea3402084280e689505e037897523e7bca6e90e733c",
             "tokenRoot": "0x3d3419dee60f8cc5a0130ed16b09561bdd41b6799245e26ffa43544269a4bebc",
             "accountRoot": "0xea57cc53a6c26fd29dbaa385138f50d9030471222cf679fa88a7274a84870bbb",
             "l3ChainRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
             "anchorRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-            "sig": "0x1df1f4c3ff9416e6c91b37c2d4052a0f3bed4075c77d0d8751076c11a3e0c44108e5c094d5720034823812ff3e42475a94bd6d13c067780d640bb9e5fd72cf7000",
-            "headerHash": "0xd14908cd79e370e4e885723cc1c9dae26c01ab3a227b14278ae989a9afa7d822"
+            "sig": "0xfe0459186a677fee2180bea65548fab50486a2700c697489706b935e5d62ea8d560a57741883f3db7e5d67814eb844f294bf9fdee025ea4776507dc0a7ba11a101",
+            "headerHash": "0xb552a637d7be42099cce57e6066d982507abceceb3984346d14240cb2bbb0442"
         }
     }
 }
@@ -230,7 +238,7 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"3","method":"plasma_getPlasmaBlock"
     filter: "00000000000000000000000000000010..."
 }
 
-curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBloomFilter","params":["0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBloomFilter","params":["0x21fbaff17bd372e965d29f76026d63a6511187fd14c791acae9600079626edb0"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "4",
@@ -245,7 +253,7 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBloomF
 * `getPlasmaTransactionReceipt(txHash bytes32)`  - get transaction Info {receipt, transaction, included blockNumber} by txHash. The receipt can be used to check whether a transaction actually was successful; pending transaction will have receipt status of `0` until it's mined. The sender could send this back to the recipient, or the recipient could simply call the API to retrieve transaction status themselves.
 
 ```
-> plasma.getPlasmaTransactionReceipt("0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2");
+> plasma.getPlasmaTransactionReceipt("0x953285f46c56bf5c1f70a0d811b2ddf6ae00ea962f521f1ba20c7dd47d0c2b6f");
 {
     blockNumber: 1,
     plasmatransaction: {
@@ -255,14 +263,14 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"4","method":"plasma_getPlasmaBloomF
         prevBlock: "0x0",
         prevOwner: "0xa45b77a98e2b840617e2ec6ddfbf71403bdcb683",
         recipient: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
-        sig: "0x70c92c528ce24447127210425f1ede95f4adb3425ba96794243f656f68d4f9d10608e256118a1279fa6624dc4b9fa086664329ca0dc4a8c6f66c3d96a868258d00",
+        sig: "0x62465828076576e5d2141a65b00883f96e3370086cd8d69db5076acd4cf941960458006d2be2875047a9699acb87e6707166fcd8be01fe29e3227008e30dc09100",
         spent: "0x0",
         tokenID: "0x37b01bd3adfc4ef3"
-    },
+  },
     receipt: 1
 }
 
-curl -X POST --data  '{"jsonrpc":"2.0","id":"5","method":"plasma_getPlasmaTransactionReceipt","params":["0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"5","method":"plasma_getPlasmaTransactionReceipt","params":["0x953285f46c56bf5c1f70a0d811b2ddf6ae00ea962f521f1ba20c7dd47d0c2b6f"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "5",
@@ -276,7 +284,7 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"5","method":"plasma_getPlasmaTransa
             "recipient": "0x82da88c31e874c678d529ad51e43de3a4baf3914",
             "allowance": "0x0",
             "spent": "0x0",
-            "sig": "0x70c92c528ce24447127210425f1ede95f4adb3425ba96794243f656f68d4f9d10608e256118a1279fa6624dc4b9fa086664329ca0dc4a8c6f66c3d96a868258d00"
+            "sig": "0x62465828076576e5d2141a65b00883f96e3370086cd8d69db5076acd4cf941960458006d2be2875047a9699acb87e6707166fcd8be01fe29e3227008e30dc09100"
         },
         "blockNumber": 1,
         "receipt": 1
@@ -287,23 +295,23 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"5","method":"plasma_getPlasmaTransa
 * `getPlasmaTransactionProof(txHash bytes32)` - get inclusion proof { blockNumber, txbyte, proofByte } by txHash. An inclusion proof is required to start exit or challenge double spend on MainNet.
 
 ```
-> plasma.getPlasmaTransactionProof("0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2");
+> plasma.getPlasmaTransactionProof("0x953285f46c56bf5c1f70a0d811b2ddf6ae00ea962f521f1ba20c7dd47d0c2b6f");
 {
     blockNumber: "0x1",
-    proofByte: "0xe0000000000000004416e8b81b687374a7705bd58f1aa122c917ed5f311b747f5e984922c4f8eed8c7a1596cabe958de0d77ae76d680905f8c23bb85bba7bb564e9ebb9fb7f257097d11460cd0890531370a9f5a5827ce98ec42c947bf5c867cf800d5c66a955a72",
+    proofByte: "0xe000000000000000be40d13045b13413417b2c2b6e0f23d336ba7ae5c9d521187ccc179f262507986c6a8bd539c1e788e8a9fbe3c42243426bad642bcbc14100923b4610fed832b0d77bd62537b7ed25202ba195360d56e3c8021109df6646f0f1cab6a6e130801a",
     tokenID: "0x37b01bd3adfc4ef3",
-    txbyte: "0xf8838837b01bd3adfc4ef3880de0b6b3a7640000018094a45b77a98e2b840617e2ec6ddfbf71403bdcb6839482da88c31e874c678d529ad51e43de3a4baf39148080b84170c92c528ce24447127210425f1ede95f4adb3425ba96794243f656f68d4f9d10608e256118a1279fa6624dc4b9fa086664329ca0dc4a8c6f66c3d96a868258d00"
+    txbyte: "0xf8838837b01bd3adfc4ef3880de0b6b3a7640000018094a45b77a98e2b840617e2ec6ddfbf71403bdcb6839482da88c31e874c678d529ad51e43de3a4baf39148080b84162465828076576e5d2141a65b00883f96e3370086cd8d69db5076acd4cf941960458006d2be2875047a9699acb87e6707166fcd8be01fe29e3227008e30dc09100"
 }
 
-curl -X POST --data  '{"jsonrpc":"2.0","id":"6","method":"plasma_getPlasmaTransactionProof","params":["0x5b61f8311258e43fcb0f62ceba463a65d0c70f574956f91d197c1e2fcf1ddbc2"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"6","method":"plasma_getPlasmaTransactionProof","params":["0x953285f46c56bf5c1f70a0d811b2ddf6ae00ea962f521f1ba20c7dd47d0c2b6f"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "6",
     "result": {
         "blockNumber": "0x1",
-        "proofByte": "0xe0000000000000004416e8b81b687374a7705bd58f1aa122c917ed5f311b747f5e984922c4f8eed8c7a1596cabe958de0d77ae76d680905f8c23bb85bba7bb564e9ebb9fb7f257097d11460cd0890531370a9f5a5827ce98ec42c947bf5c867cf800d5c66a955a72",
+        "proofByte": "0xe000000000000000be40d13045b13413417b2c2b6e0f23d336ba7ae5c9d521187ccc179f262507986c6a8bd539c1e788e8a9fbe3c42243426bad642bcbc14100923b4610fed832b0d77bd62537b7ed25202ba195360d56e3c8021109df6646f0f1cab6a6e130801a",
         "tokenID": "0x37b01bd3adfc4ef3",
-        "txbyte": "0xf8838837b01bd3adfc4ef3880de0b6b3a7640000018094a45b77a98e2b840617e2ec6ddfbf71403bdcb6839482da88c31e874c678d529ad51e43de3a4baf39148080b84170c92c528ce24447127210425f1ede95f4adb3425ba96794243f656f68d4f9d10608e256118a1279fa6624dc4b9fa086664329ca0dc4a8c6f66c3d96a868258d00"
+        "txbyte": "0xf8838837b01bd3adfc4ef3880de0b6b3a7640000018094a45b77a98e2b840617e2ec6ddfbf71403bdcb6839482da88c31e874c678d529ad51e43de3a4baf39148080b84162465828076576e5d2141a65b00883f96e3370086cd8d69db5076acd4cf941960458006d2be2875047a9699acb87e6707166fcd8be01fe29e3227008e30dc09100"
     }
 }
 ```
@@ -349,8 +357,8 @@ Note: balance field is optional
 
 ```
 # Initiate a Plasma Transaction on Layer 2
-> plasma.sendPlasmaTransaction({"tokenID":0x37b01bd3adfc4ef3, "denomination": 1000000000000000000, "depositIndex": 1, "prevBlock": 1, "prevOwner": "0x82Da88C31E874C678D529ad51E43De3A4BAF3914", "recipient": "0x3088666E05794d2498D9d98326c1b426c9950767", "allowance": 100000000000000001, "spent": 200000000000000002, "sig": "0x3c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01"});
-"0xd34a83cd0e7fe772bd81e4d1812b9529c5bd1c85dceda4b0e9b79e7cdcc96409"
+> plasma.sendPlasmaTransaction({"tokenID":0x37b01bd3adfc4ef3, "denomination": 1000000000000000000, "depositIndex": 1, "prevBlock": 1, "prevOwner": "0x82Da88C31E874C678D529ad51E43De3A4BAF3914", "recipient": "0x3088666E05794d2498D9d98326c1b426c9950767", "allowance": 100000000000000001, "spent": 200000000000000002, "sig": "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"});
+"0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1"
 
 # Retrieve Pending PlasmaTxs from PlasmaTransactionPool
 > plasma.getPlasmaTransactionPool()
@@ -362,28 +370,28 @@ Note: balance field is optional
       prevBlock: "0x1",
       prevOwner: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
       recipient: "0x3088666e05794d2498d9d98326c1b426c9950767",
-      sig: "0x3c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01",
+      sig: "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600",
       spent: "0x2c68af0bb140002",
       tokenID: "0x37b01bd3adfc4ef3"
   }]
 }
 
 # Query PlasmaTransactionReceipt (After Block is Mined)
-> plasma.getPlasmaTransactionReceipt("0xd34a83cd0e7fe772bd81e4d1812b9529c5bd1c85dceda4b0e9b79e7cdcc96409")
+> plasma.getPlasmaTransactionReceipt("0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1")
 {
-  blockNumber: 2,
-  plasmatransaction: {
-    allowance: "0x16345785d8a0001",
-    denomination: "0xde0b6b3a7640000",
-    depositIndex: "0x1",
-    prevBlock: "0x1",
-    prevOwner: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
-    recipient: "0x3088666e05794d2498d9d98326c1b426c9950767",
-    sig: "0x3c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01",
-    spent: "0x2c68af0bb140002",
-    tokenID: "0x37b01bd3adfc4ef3"
-  },
-  receipt: 1
+    blockNumber: 2,
+    plasmatransaction: {
+        allowance: "0x16345785d8a0001",
+        denomination: "0xde0b6b3a7640000",
+        depositIndex: "0x1",
+        prevBlock: "0x1",
+        prevOwner: "0x82da88c31e874c678d529ad51e43de3a4baf3914",
+        recipient: "0x3088666e05794d2498d9d98326c1b426c9950767",
+        sig: "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600",
+        spent: "0x2c68af0bb140002",
+        tokenID: "0x37b01bd3adfc4ef3"
+    },
+    receipt: 1
 }
 
 # Retrieve Token State from Latest Block
@@ -392,36 +400,38 @@ Note: balance field is optional
     allowance: 100000000000000001,
     balance: 699999999999999997,
     denomination: 1000000000000000000,
+    depositIndex: 1,
     owner: "0x3088666e05794d2498d9d98326c1b426c9950767",
     prevBlock: 2,
-    spent: 200000000000000002
+    spent: 200000000000000002,
+    tokenID: "0x37b01bd3adfc4ef3"
 }
 
 # Retrieve Latest Block
 > plasma.getPlasmaBlock("latest");
 {
-  block: {
-    accountRoot: "0x5c237e0b259471155074e667da1674037fd1b0ef0220063e524940b07d3f503f",
-    anchorRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-    blockNumber: "0x2",
-    bloomID: "0xda0f9b66e614309fead8740a3f318fd4864a09462753b0db8ae5004c7d7bfa68",
-    headerHash: "0x77865b5b9e4fca5dae894420b759502ad8d8592595b97a27612fa0e3fda19864",
-    l3ChainRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-    parentHash: "0x2e9c63ebf208d991782d79da7787fd5c297b1da78f3022cb585a49b5a3f4af98",
-    sig: "0x2c4a0300fd61209f741658e2c8176ecd08b3c75667f521dd79f98ec84c0e8bdc23d23744571b81b1b823c89963413f85b842a69af3e8257bf2d1654ce72548fd00",
-    time: "0x5b85dae7",
-    tokenRoot: "0x5b7bc99a32e5a82ce4dd99aa0846a3cf5aa022e9a3c9e92237671b019c7f401d",
-    transactionRoot: "0x7f01ead7c6ede63b005e01625dd2cdb92d6535fb6eea072255cd6051393d54f9"
-  }
+    block: {
+        accountRoot: "0x5c237e0b259471155074e667da1674037fd1b0ef0220063e524940b07d3f503f",
+        anchorRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
+        blockNumber: "0x2",
+        bloomID: "0xda0f9b66e614309fead8740a3f318fd4864a09462753b0db8ae5004c7d7bfa68",
+        headerHash: "0xc87423332c165446eeeaf1a09eb041804ecf917a92e8d822272f654f5561d64d",
+        l3ChainRoot: "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
+        parentHash: "0x9f942f75f71054c9e5cf56614755715bde7860cbacaad3ff8fc53966e238d4ee",
+        sig: "0x61dcfca6436ac60d81c01d40602d9fd955205b8a98362a12c2abdf307f953d4c423ca36c180b4da68d1272c30c47d819dac9bc025ce98849a393abc66f63390b00",
+        time: "0x5bbfd46d",
+        tokenRoot: "0x16bc6ad0aa4cec83fdc3c7e3ae217afb9bc75fcb358f329debd54b8a00fa42f2",
+        transactionRoot: "0xfa0e5f45f4f02e3ad034a495c408c449acbbffb4d38a21767b9a9af738a16c6a"
+    }
 }
 
 # Retrieve Transaction Proof
-> plasma.getPlasmaTransactionProof("0xd34a83cd0e7fe772bd81e4d1812b9529c5bd1c85dceda4b0e9b79e7cdcc96409");
+> plasma.getPlasmaTransactionProof("0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1");
 {
     blockNumber: "0x2",
     proofByte: "0x0000000000000000",
     tokenID: "0x37b01bd3adfc4ef3",
-    txbyte: "0xf8938837b01bd3adfc4ef3880de0b6b3a764000001019482da88c31e874c678d529ad51e43de3a4baf3914943088666e05794d2498d9d98326c1b426c995076788016345785d8a00018802c68af0bb140002b8413c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01"
+    txbyte: "0xf8938837b01bd3adfc4ef3880de0b6b3a764000001019482da88c31e874c678d529ad51e43de3a4baf3914943088666e05794d2498d9d98326c1b426c995076788016345785d8a00018802c68af0bb140002b841ffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"
 }
 
 # Retrieve PlasmaBalance by Owner's Address
@@ -435,15 +445,15 @@ plasma.getPlasmaBalance("0x3088666E05794d2498D9d98326c1b426c9950767", "latest");
 
 ```
 # Initiate a Plasma Transaction on Layer 2
-curl -X POST --data '{"jsonrpc":"2.0","id":"7","method":"plasma_sendPlasmaTransaction","params":[{"tokenID":"0x37b01bd3adfc4ef3", "denomination": "0xde0b6b3a7640000", "depositIndex": "0x1", "prevBlock": "0x1", "prevOwner": "0x82Da88C31E874C678D529ad51E43De3A4BAF3914", "recipient": "0x3088666E05794d2498D9d98326c1b426c9950767", "allowance": "0x16345785d8a0001", "spent": "0x2c68af0bb140002", "sig": "0x3c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01"}]}' -H 'content-type:application/json;' 'localhost:8502'
+curl -X POST --data '{"jsonrpc":"2.0","id":"7","method":"plasma_sendPlasmaTransaction","params":[{"tokenID":"0x37b01bd3adfc4ef3", "denomination": "0xde0b6b3a7640000", "depositIndex": "0x1", "prevBlock": "0x1", "prevOwner": "0x82Da88C31E874C678D529ad51E43De3A4BAF3914", "recipient": "0x3088666E05794d2498D9d98326c1b426c9950767", "allowance": "0x16345785d8a0001", "spent": "0x2c68af0bb140002", "sig": "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"}]}' -H 'content-type:application/json;' 'localhost:8505'
 {
     "jsonrpc": "2.0",
     "id": "7",
-    "result": "0xd34a83cd0e7fe772bd81e4d1812b9529c5bd1c85dceda4b0e9b79e7cdcc96409"
+    "result": "0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1"
 }
 
 # Retrieve Pending PlasmaTxs from PlasmaTransactionPool
-curl -X POST --data  '{"jsonrpc":"2.0","id":"8","method":"plasma_getPlasmaTransactionPool"}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"8","method":"plasma_getPlasmaTransactionPool"}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "8",
@@ -458,18 +468,19 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"8","method":"plasma_getPlasmaTransa
                 "recipient": "0x3088666e05794d2498d9d98326c1b426c9950767",
                 "allowance": "0x16345785d8a0001",
                 "spent": "0x2c68af0bb140002",
-                "sig": "0x3c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01"
+                "sig": "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"
             }
         ]
     }
 }
 
 # Query PlasmaTransactionReceipt (After Block is Mined)
-curl -X POST --data  '{"jsonrpc":"2.0","id":"9","method":"plasma_getPlasmaTransactionReceipt","params":["0xd34a83cd0e7fe772bd81e4d1812b9529c5bd1c85dceda4b0e9b79e7cdcc96409"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"9","method":"plasma_getPlasmaTransactionReceipt","params":["0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "9",
     "result": {
+        "receipt": 1,
         "plasmatransaction": {
             "tokenID": "0x37b01bd3adfc4ef3",
             "denomination": "0xde0b6b3a7640000",
@@ -479,54 +490,59 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"9","method":"plasma_getPlasmaTransa
             "recipient": "0x3088666e05794d2498d9d98326c1b426c9950767",
             "allowance": "0x16345785d8a0001",
             "spent": "0x2c68af0bb140002",
-            "sig": "0x3c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01"
+            "sig": "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"
         },
-        "blockNumber": 2,
-        "receipt": 1
+        "blockNumber": 2
     }
 }
 
 # Retrieve Token State from Latest Block
-curl -X POST --data  '{"jsonrpc":"2.0","id":"10","method":"plasma_getPlasmaToken","params":["0x37b01bd3adfc4ef3","latest"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"10","method":"plasma_getPlasmaToken","params":["0x37b01bd3adfc4ef3","latest"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "10",
     "result": {
         "token": {
             "denomination": "0xde0b6b3a7640000",
-            "prevBlock": "0x3",
+            "prevBlock": "0x2",
             "owner": "0x3088666e05794d2498d9d98326c1b426c9950767",
             "balance": "0x9b6e64a8ec5fffd",
             "allowance": "0x16345785d8a0001",
             "spent": "0x2c68af0bb140002"
+        },
+        "tokenInfo": {
+            "depositIndex": "0x1",
+            "denomination": "0xde0b6b3a7640000",
+            "depositor": "0x82da88c31e874c678d529ad51e43de3a4baf3914",
+            "tokenID": "0x37b01bd3adfc4ef3"
         }
     }
 }
 
 # Retrieve Latest Block
-curl -X POST --data  '{"jsonrpc":"2.0","id":"11","method":"plasma_getPlasmaBlock","params":["latest"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"11","method":"plasma_getPlasmaBlock","params":["latest"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "11",
     "result": {
         "block": {
-            "parentHash": "0x2e9c63ebf208d991782d79da7787fd5c297b1da78f3022cb585a49b5a3f4af98",
+            "parentHash": "0x9f942f75f71054c9e5cf56614755715bde7860cbacaad3ff8fc53966e238d4ee",
             "blockNumber": "0x2",
-            "time": "0x5b85dae7",
+            "time": "0x5bbfd46d",
             "bloomID": "0xda0f9b66e614309fead8740a3f318fd4864a09462753b0db8ae5004c7d7bfa68",
-            "transactionRoot": "0x7f01ead7c6ede63b005e01625dd2cdb92d6535fb6eea072255cd6051393d54f9",
-            "tokenRoot": "0x5b7bc99a32e5a82ce4dd99aa0846a3cf5aa022e9a3c9e92237671b019c7f401d",
+            "transactionRoot": "0xfa0e5f45f4f02e3ad034a495c408c449acbbffb4d38a21767b9a9af738a16c6a",
+            "tokenRoot": "0x16bc6ad0aa4cec83fdc3c7e3ae217afb9bc75fcb358f329debd54b8a00fa42f2",
             "accountRoot": "0x5c237e0b259471155074e667da1674037fd1b0ef0220063e524940b07d3f503f",
             "l3ChainRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
             "anchorRoot": "0xb992a50058a2812b0fc4fe1bbbfb3d8ffd476fb89391408212e00a7019e10eff",
-            "sig": "0x2c4a0300fd61209f741658e2c8176ecd08b3c75667f521dd79f98ec84c0e8bdc23d23744571b81b1b823c89963413f85b842a69af3e8257bf2d1654ce72548fd00",
-            "headerHash": "0x77865b5b9e4fca5dae894420b759502ad8d8592595b97a27612fa0e3fda19864"
+            "sig": "0x61dcfca6436ac60d81c01d40602d9fd955205b8a98362a12c2abdf307f953d4c423ca36c180b4da68d1272c30c47d819dac9bc025ce98849a393abc66f63390b00",
+            "headerHash": "0xc87423332c165446eeeaf1a09eb041804ecf917a92e8d822272f654f5561d64d"
         }
     }
 }
 
 # Retrieve Transaction Proof
-curl -X POST --data  '{"jsonrpc":"2.0","id":"12","method":"plasma_getPlasmaTransactionProof","params":["0xd34a83cd0e7fe772bd81e4d1812b9529c5bd1c85dceda4b0e9b79e7cdcc96409"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"12","method":"plasma_getPlasmaTransactionProof","params":["0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "12",
@@ -534,12 +550,12 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"12","method":"plasma_getPlasmaTrans
         "blockNumber": "0x2",
         "proofByte": "0x0000000000000000",
         "tokenID": "0x37b01bd3adfc4ef3",
-        "txbyte": "0xf8938837b01bd3adfc4ef3880de0b6b3a764000001019482da88c31e874c678d529ad51e43de3a4baf3914943088666e05794d2498d9d98326c1b426c995076788016345785d8a00018802c68af0bb140002b8413c2008edcd3292184c796706f2465ffd5442a119b59acca04695487c18bb21db0e20782658a00455e911ac0530bfb2a0817451e75a133c12a540b567f1f6e1ae01"
+        "txbyte": "0xf8938837b01bd3adfc4ef3880de0b6b3a764000001019482da88c31e874c678d529ad51e43de3a4baf3914943088666e05794d2498d9d98326c1b426c995076788016345785d8a00018802c68af0bb140002b841ffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"
     }
 }
 
 # Retrieve PlasmaBalance by Owner's Address
-curl -X POST --data  '{"jsonrpc":"2.0","id":"13","method":"plasma_getPlasmaBalance","params":["0x3088666E05794d2498D9d98326c1b426c9950767","latest"]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"13","method":"plasma_getPlasmaBalance","params":["0x3088666E05794d2498D9d98326c1b426c9950767","latest"]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "13",
@@ -585,13 +601,13 @@ WARNING: empty extra must be encoded as 'RLP([[],[]])' or 'c2c0c0' when there's 
 
 ```
 # Creates Layer3 Blockchain (AnchorTx with blocknumber #0)
-> plasma.sendAnchorTransaction({"blockchainID":"0x69eb463bc4f6b2df","blocknumber":"0x0","blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b","sig":"0xae7742aafad0c710dcc206f1677c15a2057cc2cc55f6bf3fccba5ccecbdb5a9b71f0f36b0df9c534bf1aa52fc4e5e2fbb1a6d839f0d0b9eb461abb774970037901"})
-"0x9922a9c18247ad9357e450d24cb9029a83772323a8f10a6b46c150ebc7ceb5ea"
+> plasma.sendAnchorTransaction({"blockchainID":"0x69eb463bc4f6b2df","blocknumber":"0x0","blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b","sig":"0x68affbe7c2ad15fdec05427fc7fa94cb885e28525463ab2b04207b5972c6bb5e57c9596f98b5e1e5c8896e46b643a8734cfd30934272012c90081209dc15a0f300"})
+"0x6808da8621d7c01021dbd98c37344e48418dd1967d6302d73a7b1c9341ca3be1"
 
 
 # Add/Remove Owners for a Layer3 Blockchain (AnchorTx with non-empty extradata)
-> plasma.sendAnchorTransaction({"blockchainID":"0x69eb463bc4f6b2df","blocknumber":"0x1","blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4","extra":{"addedOwners":["0x3088666E05794d2498D9d98326c1b426c9950767"],"removedOwners":[]},"sig":"0x767b66becf65544073daa10991d94f77f05026e7df5338a6001a423d3b38b54540226bd08856a8aa684c4c1a0d6dd01e1d4262f22b45fcc2821505c395d2d1d801"})
-"0x2236b658c5e00ba65cf7d8af8eec5492aae68ba88ec5ae0980d223fcd509bca9"
+> plasma.sendAnchorTransaction({"blockchainID":"0x69eb463bc4f6b2df","blocknumber":"0x1","blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4","extra":{"addedOwners":["0x3088666E05794d2498D9d98326c1b426c9950767"],"removedOwners":[]},"sig":"0x5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201"})
+"0xb6f91e2a3059e7a2d347d76d2e548f0a3c58068f0185f5dadcceb9580591657a"
 
 # Retrieve Pending AnchorTxs from AnchorTransactionPool
 > plasma.getAnchorTransactionPool()
@@ -604,7 +620,7 @@ WARNING: empty extra must be encoded as 'RLP([[],[]])' or 'c2c0c0' when there's 
         addedOwners: [],
         removedOwners: []
       },
-      sig: "0xae7742aafad0c710dcc206f1677c15a2057cc2cc55f6bf3fccba5ccecbdb5a9b71f0f36b0df9c534bf1aa52fc4e5e2fbb1a6d839f0d0b9eb461abb774970037901"
+      sig: "0x68affbe7c2ad15fdec05427fc7fa94cb885e28525463ab2b04207b5972c6bb5e57c9596f98b5e1e5c8896e46b643a8734cfd30934272012c90081209dc15a0f300"
   }, {
       blockchainID: "0x69eb463bc4f6b2df",
       blockhash: "0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4",
@@ -613,30 +629,30 @@ WARNING: empty extra must be encoded as 'RLP([[],[]])' or 'c2c0c0' when there's 
         addedOwners: [...],
         removedOwners: []
       },
-      sig: "0x767b66becf65544073daa10991d94f77f05026e7df5338a6001a423d3b38b54540226bd08856a8aa684c4c1a0d6dd01e1d4262f22b45fcc2821505c395d2d1d801"
+      sig: "0x5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201"
   }]
 }
 ```
 ```
 # Creates Layer3 Blockchain (AnchorTx with blocknumber #0)
-curl -X POST --data  '{"jsonrpc":"2.0","id":"14","method":"plasma_sendAnchorTransaction","params":[{"blockchainID":"0x69eb463bc4f6b2df", "blocknumber":"0x0", "blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b", "sig":"0xae7742aafad0c710dcc206f1677c15a2057cc2cc55f6bf3fccba5ccecbdb5a9b71f0f36b0df9c534bf1aa52fc4e5e2fbb1a6d839f0d0b9eb461abb774970037901"}]}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"14","method":"plasma_sendAnchorTransaction","params":[{"blockchainID":"0x69eb463bc4f6b2df", "blocknumber":"0x0", "blockhash":"0x03c85f1da84d9c6313e0c34bcb5ace945a9b12105988895252b88ce5b769f82b", "sig":"0x68affbe7c2ad15fdec05427fc7fa94cb885e28525463ab2b04207b5972c6bb5e57c9596f98b5e1e5c8896e46b643a8734cfd30934272012c90081209dc15a0f300"}]}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "14",
-    "result": "0x9922a9c18247ad9357e450d24cb9029a83772323a8f10a6b46c150ebc7ceb5ea"
+    "result": "0x6808da8621d7c01021dbd98c37344e48418dd1967d6302d73a7b1c9341ca3be1"
 }
 
 
 # Add/Remove Owners for a Layer3 Blockchain (AnchorTx with non-empty extradata)
-curl -X POST --data '{"jsonrpc":"2.0","id":"15","method":"plasma_sendAnchorTransaction","params":[{"blockchainID":"0x69eb463bc4f6b2df", "blocknumber":"0x1", "blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "extra":{"addedOwners":["0x3088666E05794d2498D9d98326c1b426c9950767"],"removedOwners":[]}, "sig":"0x767b66becf65544073daa10991d94f77f05026e7df5338a6001a423d3b38b54540226bd08856a8aa684c4c1a0d6dd01e1d4262f22b45fcc2821505c395d2d1d801"}]}' -H'content-type:application/json;' 'localhost:8502'
+curl -X POST --data '{"jsonrpc":"2.0","id":"15","method":"plasma_sendAnchorTransaction","params":[{"blockchainID":"0x69eb463bc4f6b2df", "blocknumber":"0x1", "blockhash":"0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "extra":{"addedOwners":["0x3088666E05794d2498D9d98326c1b426c9950767"],"removedOwners":[]}, "sig":"0x5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201"}]}' -H'content-type:application/json;' 'localhost:8505'
 {
     "jsonrpc": "2.0",
     "id": "15",
-    "result": "0x2236b658c5e00ba65cf7d8af8eec5492aae68ba88ec5ae0980d223fcd509bca9"
+    "result": "0xb6f91e2a3059e7a2d347d76d2e548f0a3c58068f0185f5dadcceb9580591657a"
 }
 
 # Retrieve Pending AnchorTxs from AnchorTransactionPool
-curl -X POST --data  '{"jsonrpc":"2.0","id":"16","method":"plasma_getAnchorTransactionPool"}' -H 'content-type:application/json;' 'localhost:8502';
+curl -X POST --data  '{"jsonrpc":"2.0","id":"16","method":"plasma_getAnchorTransactionPool"}' -H 'content-type:application/json;' 'localhost:8505';
 {
     "jsonrpc": "2.0",
     "id": "16",
@@ -650,7 +666,7 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"16","method":"plasma_getAnchorTrans
                     "addedOwners": [],
                     "removedOwners": []
                 },
-                "sig": "0xae7742aafad0c710dcc206f1677c15a2057cc2cc55f6bf3fccba5ccecbdb5a9b71f0f36b0df9c534bf1aa52fc4e5e2fbb1a6d839f0d0b9eb461abb774970037901"
+                "sig": "0x68affbe7c2ad15fdec05427fc7fa94cb885e28525463ab2b04207b5972c6bb5e57c9596f98b5e1e5c8896e46b643a8734cfd30934272012c90081209dc15a0f300"
             },
             {
                 "blockchainID": "0x69eb463bc4f6b2df",
@@ -662,9 +678,117 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"16","method":"plasma_getAnchorTrans
                     ],
                     "removedOwners": []
                 },
-                "sig": "0x767b66becf65544073daa10991d94f77f05026e7df5338a6001a423d3b38b54540226bd08856a8aa684c4c1a0d6dd01e1d4262f22b45fcc2821505c395d2d1d801"
+                "sig": "0x5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201"
             }
         ]
     }
 }
+```
+
+
+## Transaction Signing
+Both Plasma Transaction and Anchor Transaction are signed as *ethereum message*, which are prepended with `\x19Ethereum Signed Message:\n32`. Use [PlasmaTx](https://rinkeby.etherscan.io/address/0x36150061b09da5304cc4ca6fe3a1c9888bd6561a#readContract) and [AnchorTx](https://rinkeby.etherscan.io/address/0x0037a175040810d45b94373152ee6660f57ee40d#readContract) debug tool verify the signing.
+
+```
+# PlasmaTx Signing Example
+
+PlasmaTx To Sign:
+{
+    "tokenID": "37b01bd3adfc4ef3",
+    "denomination": "1000000000000000000",
+    "depositIndex": "1",
+    "prevBlock": "0",
+    "prevOwner": "a45b77a98e2b840617e2ec6ddfbf71403bdcb683",
+    "Recipient": "82da88c31e874c678d529ad51e43de3a4baf3914",
+    "allowance": "0",
+    "spent": "0",
+    "sig": "" //unknown yet
+}
+
+# Step 1: unsignedTxbyte
+rlp.encode([37b01bd3adfc4ef3,de0b6b3a7640000, 1, 1, 82da88c31e874c678d529ad51e43de3a4baf3914, 3088666e05794d2498d9d98326c1b426c9950767, 16345785d8a0001, 2c68af0bb140002, ""])
+0xf8518837b01bd3adfc4ef3880de0b6b3a764000001019482da88c31e874c678d529ad51e43de3a4baf3914943088666e05794d2498d9d98326c1b426c995076788016345785d8a00018802c68af0bb14000280 // result of rlpencode(PlasmaTx)
+
+# Step 2: Retrieve shortHash
+0x81bc3f429f14473e759729c145c73b20f00006b8be6902f6a47326c750051f3a // Keccak256(unsignedTxbyte)
+
+# step 3: Sign with Metamask (web3.eth.sign)
+signedHash: 0x81bc3f429f14473e759729c145c73b20f00006b8be6902f6a47326c750051f3a // Keccak256("\x19Ethereum Signed Message:\n32", shortHash)
+signature: 0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600
+
+# Step 4: Fill in the signature
+{"tokenID":0x37b01bd3adfc4ef3, "denomination": 1000000000000000000, "depositIndex": 1, "prevBlock": 1, "prevOwner": "0x82Da88C31E874C678D529ad51E43De3A4BAF3914", "recipient": "0x3088666E05794d2498D9d98326c1b426c9950767", "allowance": 100000000000000001, "spent": 200000000000000002, "sig": "0xffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600"}
+
+txBytes:
+0xf8938837b01bd3adfc4ef3880de0b6b3a764000001019482da88c31e874c678d529ad51e43de3a4baf3914943088666e05794d2498d9d98326c1b426c995076788016345785d8a00018802c68af0bb140002b841ffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600 // rlpencode(signedPlasmaTx)
+
+rlpDecode:
+
+[
+  37b01bd3adfc4ef3,
+  0de0b6b3a7640000,
+  01,
+  01,
+  82da88c31e874c678d529ad51e43de3a4baf3914,
+  3088666e05794d2498d9d98326c1b426c9950767,
+  016345785d8a0001,
+  02c68af0bb140002,
+  ffe9cddfd9306418f8b7dc6192c3abb1b7a4ef119d819219e9b7f5bcb5e4c02a71cd4a4d73e2a0dbb359d76867e448060f214f7a1cdd8ecade0f3e7684cf0a1600,
+]
+
+txHash: 0x8dde5209f1c65c0dbfd88a75ea31160823184b410984765f0a4624e649215df1 // Keccak256(txBytes)
+Done!
+```
+
+```
+# AnchorTx Signing Example
+
+AnchorTX To Sign:
+{
+    "blockchainID": "0x69eb463bc4f6b2df",
+    "blocknumber": "0x1",
+    "blockhash": "0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4",
+    "extra": {
+        "addedOwners": [
+            "0x3088666E05794d2498D9d98326c1b426c9950767"
+        ],
+        "removedOwners": []
+    },
+    "sig": "" // unknown yet
+}
+
+# Step 1: unsignedTxbyte
+RLPENCODE([69eb463bc4f6b2df, 1, 0x6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4,[[3088666e05794d2498d9d98326c1b426c9950767],[]], ""])
+0xf8448869eb463bc4f6b2df01a06d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4d7d5943088666e05794d2498d9d98326c1b426c9950767c080 // result of rlpencode(AnchorTX)
+
+# Step 2: Retrieve shortHash
+0x4c0b719111a7a240647d5a3f266842f97333e67bf2c493d45e7e27a52660f801 // Keccak256(unsignedTxbyte)
+
+# step 3: Sign with Metamask (web3.eth.sign)
+signedHash: 0x97eae61b4aa00dc438f9df18a359d1ce0dd8d0d0be900440bcbd18f01c8a9509 // Keccak256("\x19Ethereum Signed Message:\n32", shortHash)
+signature: 0x5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201
+
+# Step 4: Fill in the signature
+{"BlockChainID":"69eb463bc4f6b2df", "BlockNumber":"1", "BlockHash":"6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4", "Extra":"d7d5943088666e05794d2498d9d98326c1b426c9950767c0", "Sig":"5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201"}
+
+txBytes:
+0xf8868869eb463bc4f6b2df01a06d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4d7d5943088666e05794d2498d9d98326c1b426c9950767c0b8415a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201 // rlpencode(signedAnchorTx)
+
+rlpDecode:
+
+[
+  69eb463bc4f6b2df,
+  01,
+  6d255fc3390ee6b41191da315958b7d6a1e5b17904cc7683558f98acc57977b4,
+  [
+    [
+      3088666e05794d2498d9d98326c1b426c9950767,
+    ],
+    [],
+  ],
+  5a09945a81e39455acc1c3c97b559112ec9e874c0964c38f3c119efc10d3a663433e0726869579edf2e2285f676a6cb1330b6e22dd6a19398b630002841ed08201,
+]
+
+txHash: 0xb6f91e2a3059e7a2d347d76d2e548f0a3c58068f0185f5dadcceb9580591657a // Keccak256(txBytes)
+Done!
 ```

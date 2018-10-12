@@ -53,7 +53,10 @@ library ECRecovery {
         if (v != 27 && v != 28) {
             return (address(0));
         } else {
-            return ecrecover(hash, v, r, s);
+            // consistent hash for metamask
+            bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+            bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, hash));
+            return ecrecover(prefixedHash, v, r, s);
         }
     }
 }

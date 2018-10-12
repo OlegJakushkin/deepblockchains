@@ -19,10 +19,11 @@
 /**
  * @title Deep Blockchains - Plasma Transaction Debug
  * @author Michael Chung (michael@wolk.com)
- * @dev Plasma Transaction Debug Tool. Helper functions are not exposed in production contract
+ * @dev Plasma Transaction Debug Tool. Helper functions are not used in production contract
  */
 
 pragma solidity ^0.4.25;
+//pragma experimental ABIEncoderV2;
 
 import './Transaction.sol';
 
@@ -35,33 +36,15 @@ contract TransactionDebug {
     using RLPEncode for bytes[];
     using RLPEncode for bytes;
 
-    function verifyTx(bytes txBytes) public pure returns (bool) {
+    function verifyTx(bytes txBytes) public pure returns (bool isValidTx) {
         return txBytes.verifyTx();
     }
 
-    function getSigner(bytes txBytes) public pure returns (address) {
+    function getSigner(bytes txBytes) public pure returns (address signer) {
         return txBytes.getSigner();
     }
 
-    function getTxHash(bytes memory txBytes) public pure returns (bytes32) {
-        return keccak256(txBytes);
-    }
-
-    function getMsgHash(bytes memory txBytes) public pure returns (bytes32) {
-        RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
-        bytes[] memory unsignedTx = new bytes[](9);
-        for(uint i=0; i<rlpTx.length; i++) {
-            if (i!=8){
-                unsignedTx[i] = rlpTx[i].toBytes();
-            }else{
-                unsignedTx[i] = new bytes(0).encodeBytes();
-            }
-        }
-        bytes memory rlpUnsignedTx = unsignedTx.encodeList();
-        return keccak256(rlpUnsignedTx);
-    }
-
-    function getUnsignedtxBytes(bytes memory txBytes) public pure returns (bytes) {
+    function getUnsignedtxBytes(bytes memory txBytes) public pure returns (bytes unsignedTxByte) {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         bytes[] memory unsignedTx = new bytes[](9);
         for(uint i=0; i<rlpTx.length; i++) {
@@ -74,44 +57,64 @@ contract TransactionDebug {
         return unsignedTx.encodeList();
     }
 
-    function getTokenID(bytes memory txBytes) public pure returns (uint64) {
+    function getShortHash(bytes memory txBytes) public pure returns (bytes32 shortHash) {
+        bytes memory rlpUnsignedTx = getUnsignedtxBytes(txBytes);
+        return keccak256(rlpUnsignedTx);
+    }
+
+    function getSignedHash(bytes memory txBytes) public pure returns (bytes32 signedHash) {
+        bytes32 shortHash = getShortHash(txBytes);
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        return keccak256(abi.encodePacked(prefix, shortHash));
+    }
+
+    function getTxHash(bytes memory txBytes) public pure returns (bytes32 txHash) {
+        return keccak256(txBytes);
+    }
+
+    function getTokenID(bytes memory txBytes) public pure returns (uint64 tokenID) {
         return txBytes.parseTx().TokenID;
     }
 
-    function getDenomination(bytes memory txBytes) public pure returns (uint64) {
+    function getDenomination(bytes memory txBytes) public pure returns (uint64 denomination) {
         return txBytes.parseTx().Denomination;
     }
 
-    function getDepositIndex(bytes memory txBytes) public pure returns (uint64) {
+    function getDepositIndex(bytes memory txBytes) public pure returns (uint64 depositIndex) {
         return txBytes.parseTx().DepositIndex;
     }
 
-    function getPrevBlock(bytes memory txBytes) public pure returns (uint64) {
+    function getPrevBlock(bytes memory txBytes) public pure returns (uint64 prevBlock) {
         return txBytes.parseTx().PrevBlock;
     }
 
-    function getPrevOwner(bytes memory txBytes) public pure returns (address) {
+    function getPrevOwner(bytes memory txBytes) public pure returns (address prevOwner) {
         return txBytes.parseTx().PrevOwner;
     }
 
-    function getRecipient(bytes memory txBytes) public pure returns (address) {
+    function getRecipient(bytes memory txBytes) public pure returns (address recipient) {
         return txBytes.parseTx().Recipient;
     }
 
-    function getAllowance(bytes memory txBytes) public pure returns (uint64) {
+    function getAllowance(bytes memory txBytes) public pure returns (uint64 allowance) {
         return txBytes.parseTx().Allowance;
     }
 
-    function getSpent(bytes memory txBytes) public pure returns (uint64) {
+    function getSpent(bytes memory txBytes) public pure returns (uint64 spent) {
         return txBytes.parseTx().Spent;
     }
 
-    function getBalance(bytes memory txBytes) public pure returns (uint64) {
+    function getBalance(bytes memory txBytes) public pure returns (uint64 balance) {
         return txBytes.parseTx().Balance;
     }
 
-    function getSig(bytes memory txBytes) public pure returns (bytes) {
+    function getSig(bytes memory txBytes) public pure returns (bytes signiture) {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(9);
         return rlpTx[8].toData();
     }
+
+    // Experimental Debug Curretnly Not Available
+    // function parsePlasmaTx(bytes memory txBytes) public pure returns (Transaction.PlasmaTx memory plasmaTx) {
+    //     return txBytes.parseTx();
+    // }
 }

@@ -17,12 +17,13 @@
 
 
 /**
- * @title Deep Blockchains - Plasma Transaction Debug
+ * @title Deep Blockchains - Anchor Transaction Debug
  * @author Michael Chung (michael@wolk.com)
- * @dev Plasma Transaction Debug Tool. Helper functions are not exposed in production contract
+ * @dev Anchor Transaction Debug Tool. Helper functions are not used in production contract
  */
 
 pragma solidity ^0.4.25;
+//pragma experimental ABIEncoderV2;
 
 import './AnchorTransaction.sol';
 
@@ -35,37 +36,15 @@ contract AnchorTransactionDebug {
     using RLPEncode for bytes[];
     using RLPEncode for bytes;
 
-    function verifyTx(bytes txBytes, address signer) public pure returns (bool) {
+    function verifyTx(bytes txBytes, address signer) public pure returns (bool isValidTx) {
         return txBytes.getSigner() == signer;
     }
 
-    function getSigner(bytes txBytes) public pure returns (address) {
+    function getSigner(bytes txBytes) public pure returns (address signer) {
         return txBytes.getSigner();
     }
 
-    function getSig(bytes memory txBytes) public pure returns (bytes) {
-        return txBytes.parseTx().Sig;
-    }
-
-    function getTxHash(bytes memory txBytes) public pure returns (bytes32) {
-        return keccak256(txBytes);
-    }
-
-    function getMsgHash(bytes memory txBytes) public pure returns (bytes32) {
-        RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(5);
-        bytes[] memory unsignedTx = new bytes[](5);
-        for(uint i=0; i<rlpTx.length; i++) {
-            if (i==4){
-                unsignedTx[i] = new bytes(0).encodeBytes();
-            }else {
-                unsignedTx[i] = rlpTx[i].toBytes();
-            }
-        }
-        bytes memory rlpUnsignedTx =  unsignedTx.encodeList();
-        return keccak256(rlpUnsignedTx);
-    }
-
-    function getUnsignedtxBytes(bytes memory txBytes) public pure returns (bytes) {
+    function getUnsignedtxBytes(bytes memory txBytes) public pure returns (bytes unsignedTxByte) {
         RLP.RLPItem[] memory rlpTx = txBytes.toRLPItem().toList(5);
         bytes[] memory unsignedTx = new bytes[](5);
         for(uint i=0; i<rlpTx.length; i++) {
@@ -78,23 +57,47 @@ contract AnchorTransactionDebug {
         return unsignedTx.encodeList();
     }
 
-    function getBlockchainID(bytes memory txBytes) public pure returns (uint64) {
+    function getShortHash(bytes memory txBytes) public pure returns (bytes32 shortHash) {
+        bytes memory rlpUnsignedTx = getUnsignedtxBytes(txBytes);
+        return keccak256(rlpUnsignedTx);
+    }
+
+    function getSignHash(bytes memory txBytes) public pure returns (bytes32 signedHash) {
+        bytes32 shortHash = getShortHash(txBytes);
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        return keccak256(abi.encodePacked(prefix, shortHash));
+    }
+
+    function getTxHash(bytes memory txBytes) public pure returns (bytes32 txHash) {
+        return keccak256(txBytes);
+    }
+
+    function getBlockchainID(bytes memory txBytes) public pure returns (uint64 chaindID) {
         return txBytes.parseTx().BlockChainID;
     }
 
-    function getBlockNumber(bytes memory txBytes) public pure returns (uint64) {
+    function getBlockNumber(bytes memory txBytes) public pure returns (uint64 blockNumber) {
         return txBytes.parseTx().BlockNumber;
     }
 
-    function getBlockHash(bytes memory txBytes) public pure returns (bytes32) {
+    function getBlockHash(bytes memory txBytes) public pure returns (bytes32 blockHash) {
         return txBytes.parseTx().BlockHash;
     }
 
-    function getAddedOwners(bytes memory txBytes) public pure returns (address[]) {
+    function getAddedOwners(bytes memory txBytes) public pure returns (address[] addedOwners) {
         return txBytes.parseTx().Extra.AddedOwners;
     }
 
-    function getRemovedOwners(bytes memory txBytes) public pure returns (address[]) {
+    function getRemovedOwners(bytes memory txBytes) public pure returns (address[] removedOwners) {
         return txBytes.parseTx().Extra.RemovedOwners;
     }
+
+    function getSig(bytes memory txBytes) public pure returns (bytes signiture) {
+        return txBytes.parseTx().Sig;
+    }
+
+    // Experimental Debug Curretnly Not Available
+    // function parseAnchorTx(bytes memory txBytes) public pure returns (AnchorTransaction.AnchorTx memory anchorTx) {
+    //     return txBytes.parseTx();
+    // }
 }

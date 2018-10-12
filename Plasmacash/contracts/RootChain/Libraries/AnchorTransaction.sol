@@ -17,7 +17,7 @@
 
 
 /**
- * @title Deep Blockchains - Anchor Transaction Library
+ * @title Deep Blockchains - Anchor Transaction Library (with Metamask support)
  * @author Michael Chung (michael@wolk.com)
  * @dev This library handles AnchorTx and Extra struct RLP encode/decode on chain
  */
@@ -46,7 +46,6 @@ library AnchorTransaction {
         bytes Sig;
     }
 
-
     struct Ownership {
         address[]  AddedOwners;
         address[]  RemovedOwners;
@@ -68,7 +67,6 @@ library AnchorTransaction {
         bytes memory rlpUnsignedTx =  unsignedTx.encodeList();
         return ECRecovery.recover(keccak256(rlpUnsignedTx), sig);
     }
-
 
     function parseOwnership(bytes memory extraByte) internal pure returns (Ownership memory) {
         RLP.RLPItem[] memory rlpExtra = extraByte.toRLPItem().toList(2);

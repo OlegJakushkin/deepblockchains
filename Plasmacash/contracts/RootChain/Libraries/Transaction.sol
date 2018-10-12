@@ -17,7 +17,7 @@
 
 
 /**
- * @title Deep Blockchains - Plasma Transaction Library
+ * @title Deep Blockchains - Plasma Transaction Library (with Metamask support)
  * @author Michael Chung (michael@wolk.com)
  * @dev This library handles PlasmaTx RLP encode/decode and verifies signature on chain
  */
