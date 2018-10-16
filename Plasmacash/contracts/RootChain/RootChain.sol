@@ -26,6 +26,7 @@ pragma solidity ^0.4.25;
 import "./Libraries/Transaction.sol";
 import "./Libraries/PriorityQueue.sol";
 import "./Libraries/SparseMerkle.sol";
+import "./Libraries/SafeMath.sol";
 
 contract RootChain {
 
@@ -43,6 +44,7 @@ contract RootChain {
 
 
     using Transaction for bytes;
+    using SafeMath for uint64;
     address public authority;
     uint64 public currentDepositIndex;
     uint64 public currentBlkNum;
@@ -57,6 +59,7 @@ contract RootChain {
         uint64  prevBlk;
         uint64  exitBlk;
         address exitor;
+        uint64 balance;
         uint exitableTS;
         uint bond;
     }
@@ -105,7 +108,7 @@ contract RootChain {
         uint64 denomination = depositBalance[tokenID];
         require(uint64(uint256(keccak256(abi.encodePacked(msg.sender, _depositIndex, denomination))) % (2 ** 64)) == tokenID);
         require(denomination > 0);
-        Exit memory etx = Exit(0, 1, msg.sender, block.timestamp + 60, msg.value); //depositExit validation uniquely checked by exit.prevBlk
+        Exit memory etx = Exit(0, 1, msg.sender, denomination, block.timestamp + 60, msg.value); //depositExit validation uniquely checked by exit.prevBlk
         addExitToQueue(tokenID, _depositIndex, etx);
         emit StartExit(msg.sender, _depositIndex, denomination, tokenID, block.timestamp);
     }
@@ -130,7 +133,7 @@ contract RootChain {
         require(smt.checkMembership(keccak256(txBytes),childChain[blk], tokenID, proof), "exitTx non member");
 
         //StartExit. bond(currently not required)
-        Exit memory etx = Exit(prevBlk, blk, msg.sender, block.timestamp + 60, msg.value);
+        Exit memory etx = Exit(prevBlk, blk, msg.sender, exitTx.Balance, block.timestamp + 60, msg.value);
         addExitToQueue(tokenID, exitTx.DepositIndex, etx);
         emit StartExit(msg.sender, exitTx.DepositIndex, exitTx.Denomination, tokenID, block.timestamp);
 
@@ -197,6 +200,7 @@ contract RootChain {
         uint64 tokenID;
         uint256 exitableTS;
         uint256 currenTS = block.timestamp;
+        uint8 counter = 0;
         (depID, tokenID, exitableTS) = getNextExit();
         Exit memory currentExit;
 
@@ -204,22 +208,27 @@ contract RootChain {
         emit ExitTime(exitableTS, currenTS);
 
 
-        while (exitableTS < currenTS) {
+        while (exitableTS < currenTS && counter <= 20) {
             currentExit = exits[tokenID];
 
             //Guard against Invalid Exit cancelled by challenge;
             if (currentExit.exitor != 0x0) {
                 uint64 denomination = depositBalance[tokenID];
+                uint64 exitorBalance = currentExit.balance;
+                uint64 operatorBalance = denomination.uint64Sub(exitorBalance);
+
                 delete depositBalance[tokenID];
-                //TODO: refund bond attached to valid exit
-                currentExit.exitor.transfer(denomination);
                 delete depositIndex[depID];
-                emit FinalizedExit(currentExit.exitor, depID, denomination, tokenID, currenTS);
+                //TODO: refund bond attached to valid exit
+                currentExit.exitor.transfer(exitorBalance);
+                authority.transfer(operatorBalance);
+                emit FinalizedExit(currentExit.exitor, depID, exitorBalance, tokenID, currenTS);
             }
 
             emit ExitCompleted(exitsQueue.getMin());
             exitsQueue.delMin();
             delete exits[tokenID];
+            counter = counter+1;
 
             if (exitsQueue.currentSize() > 0) {
                 (depID, tokenID, exitableTS) = getNextExit();

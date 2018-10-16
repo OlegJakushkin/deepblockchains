@@ -1,44 +1,20 @@
 [
     {
-        "constant": true,
+        "anonymous": false,
         "inputs": [
             {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "name": "depositIndex",
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "getNextExit",
-        "outputs": [
-            {
-                "name": "depID",
-                "type": "uint64"
-            },
-            {
-                "name": "tokenID",
-                "type": "uint64"
-            },
-            {
+                "indexed": false,
                 "name": "exitableTS",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "name": "cuurrentTS",
                 "type": "uint256"
             }
         ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
+        "name": "ExitTime",
+        "type": "event"
     },
     {
         "constant": false,
@@ -57,96 +33,6 @@
             }
         ],
         "name": "challenge",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "currentDepositIndex",
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "_depositIndex",
-                "type": "uint64"
-            }
-        ],
-        "name": "depositExit",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [],
-        "name": "kill",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "name": "childChain",
-        "outputs": [
-            {
-                "name": "",
-                "type": "bytes32"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [
-            {
-                "name": "prevTxBytes",
-                "type": "bytes"
-            },
-            {
-                "name": "prevProof",
-                "type": "bytes"
-            },
-            {
-                "name": "prevBlk",
-                "type": "uint64"
-            },
-            {
-                "name": "txBytes",
-                "type": "bytes"
-            },
-            {
-                "name": "proof",
-                "type": "bytes"
-            },
-            {
-                "name": "blk",
-                "type": "uint64"
-            }
-        ],
-        "name": "startExit",
         "outputs": [],
         "payable": false,
         "stateMutability": "nonpayable",
@@ -187,43 +73,6 @@
         "type": "function"
     },
     {
-        "constant": true,
-        "inputs": [],
-        "name": "currentBlkNum",
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": true,
-        "inputs": [],
-        "name": "authority",
-        "outputs": [
-            {
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "constant": false,
-        "inputs": [],
-        "name": "finalizeExits",
-        "outputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
         "constant": false,
         "inputs": [],
         "name": "deposit",
@@ -233,94 +82,25 @@
         "type": "function"
     },
     {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "name": "exits",
-        "outputs": [
-            {
-                "name": "prevBlk",
-                "type": "uint64"
-            },
-            {
-                "name": "exitBlk",
-                "type": "uint64"
-            },
-            {
-                "name": "exitor",
-                "type": "address"
-            },
-            {
-                "name": "exitableTS",
-                "type": "uint256"
-            },
-            {
-                "name": "bond",
-                "type": "uint256"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "constant": false,
         "inputs": [
             {
-                "name": "_blkRoot",
-                "type": "bytes32"
-            },
-            {
-                "name": "_blknum",
+                "name": "_depositIndex",
                 "type": "uint64"
             }
         ],
-        "name": "submitBlock",
+        "name": "depositExit",
         "outputs": [],
         "payable": false,
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "constant": true,
-        "inputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "name": "depositBalance",
-        "outputs": [
-            {
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "payable": false,
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "payable": false,
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-    },
-    {
-        "payable": true,
-        "stateMutability": "payable",
-        "type": "fallback"
-    },
-    {
         "anonymous": false,
         "inputs": [
             {
                 "indexed": false,
-                "name": "_depositor",
+                "name": "_exiter",
                 "type": "address"
             },
             {
@@ -337,9 +117,48 @@
                 "indexed": true,
                 "name": "_tokenID",
                 "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_timestamp",
+                "type": "uint256"
             }
         ],
-        "name": "Deposit",
+        "name": "FinalizedExit",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "name": "_rootHash",
+                "type": "bytes32"
+            },
+            {
+                "indexed": true,
+                "name": "_blknum",
+                "type": "uint64"
+            },
+            {
+                "indexed": true,
+                "name": "_currentDepositIndex",
+                "type": "uint64"
+            }
+        ],
+        "name": "PublishedBlock",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "name": "_priority",
+                "type": "uint256"
+            }
+        ],
+        "name": "ExitStarted",
         "type": "event"
     },
     {
@@ -379,29 +198,7 @@
         "inputs": [
             {
                 "indexed": false,
-                "name": "_rootHash",
-                "type": "bytes32"
-            },
-            {
-                "indexed": true,
-                "name": "_blknum",
-                "type": "uint64"
-            },
-            {
-                "indexed": true,
-                "name": "_currentDepositIndex",
-                "type": "uint64"
-            }
-        ],
-        "name": "PublishedBlock",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "name": "_exiter",
+                "name": "_depositor",
                 "type": "address"
             },
             {
@@ -418,14 +215,21 @@
                 "indexed": true,
                 "name": "_tokenID",
                 "type": "uint64"
-            },
+            }
+        ],
+        "name": "Deposit",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
             {
                 "indexed": true,
-                "name": "_timestamp",
+                "name": "_priority",
                 "type": "uint256"
             }
         ],
-        "name": "FinalizedExit",
+        "name": "ExitCompleted",
         "type": "event"
     },
     {
@@ -454,30 +258,6 @@
         "anonymous": false,
         "inputs": [
             {
-                "indexed": true,
-                "name": "_priority",
-                "type": "uint256"
-            }
-        ],
-        "name": "ExitStarted",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "name": "_priority",
-                "type": "uint256"
-            }
-        ],
-        "name": "ExitCompleted",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
                 "indexed": false,
                 "name": "depID",
                 "type": "uint64"
@@ -497,20 +277,244 @@
         "type": "event"
     },
     {
-        "anonymous": false,
+        "constant": false,
+        "inputs": [],
+        "name": "finalizeExits",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [],
+        "name": "kill",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
         "inputs": [
             {
-                "indexed": false,
+                "name": "prevTxBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "prevProof",
+                "type": "bytes"
+            },
+            {
+                "name": "prevBlk",
+                "type": "uint64"
+            },
+            {
+                "name": "txBytes",
+                "type": "bytes"
+            },
+            {
+                "name": "proof",
+                "type": "bytes"
+            },
+            {
+                "name": "blk",
+                "type": "uint64"
+            }
+        ],
+        "name": "startExit",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "_blkRoot",
+                "type": "bytes32"
+            },
+            {
+                "name": "_blknum",
+                "type": "uint64"
+            }
+        ],
+        "name": "submitBlock",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "payable": true,
+        "stateMutability": "payable",
+        "type": "fallback"
+    },
+    {
+        "inputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "authority",
+        "outputs": [
+            {
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "childChain",
+        "outputs": [
+            {
+                "name": "",
+                "type": "bytes32"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "currentBlkNum",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "currentDepositIndex",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "depositBalance",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "depositIndex",
+        "outputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [
+            {
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "name": "exits",
+        "outputs": [
+            {
+                "name": "prevBlk",
+                "type": "uint64"
+            },
+            {
+                "name": "exitBlk",
+                "type": "uint64"
+            },
+            {
+                "name": "exitor",
+                "type": "address"
+            },
+            {
+                "name": "balance",
+                "type": "uint64"
+            },
+            {
                 "name": "exitableTS",
                 "type": "uint256"
             },
             {
-                "indexed": false,
-                "name": "cuurrentTS",
+                "name": "bond",
                 "type": "uint256"
             }
         ],
-        "name": "ExitTime",
-        "type": "event"
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "getNextExit",
+        "outputs": [
+            {
+                "name": "depID",
+                "type": "uint64"
+            },
+            {
+                "name": "tokenID",
+                "type": "uint64"
+            },
+            {
+                "name": "exitableTS",
+                "type": "uint256"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
     }
 ]
