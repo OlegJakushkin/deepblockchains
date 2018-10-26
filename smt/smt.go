@@ -40,9 +40,20 @@ func (self *SparseMerkleTree) Init(hash common.Hash) {
 	self.root.unloaded = true
 }
 
+//merkleroot <=> chunkHash mapping is only stored at the highest SMT level
+func (self *SparseMerkleTree) InitWithRoot(merkleroot common.Hash) bool {
+	chunkHash, err := self.Cloudstore.RetrieveChunk(merkleroot.Bytes())
+	if err != nil || len(chunkHash) == 0 {
+		return false
+	}
+	self.root.SetHash(chunkHash)
+	return true
+}
+
 func (self *SparseMerkleTree) Flush() {
 	self.root.computeMerkleRoot(self.Cloudstore, self.DefaultHashes)
 	self.root.flush(self.Cloudstore)
+	self.root.flushRoot(self.Cloudstore)
 }
 
 func (self *SparseMerkleTree) Delete(k []byte) error {

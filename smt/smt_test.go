@@ -61,7 +61,7 @@ func TestSMT(t *testing.T) {
 
 	for ver := uint64(0); ver < nversions; ver++ {
 		smt0 = smt.NewSparseMerkleTree(pcs)
-		smt0.Init(chunkHash[ver])
+		smt0.InitWithRoot(merkleRoot[ver]) // Alternatively, init with smt0.Init(chunkHash[ver])
 		passes := 0
 		for i := uint64(0); i < nkeys; i++ {
 			k := smt.Bytes32ToUint64(smt.Keccak256(smt.Uint64ToBytes32(i % 10000)))

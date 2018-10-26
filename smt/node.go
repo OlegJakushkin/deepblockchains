@@ -416,6 +416,15 @@ func (self *Node) flush(pcs Cloudstore) (err error) {
 	return nil
 }
 
+func (self *Node) flushRoot(pcs Cloudstore) (err error) {
+	//create (merkleroot, chunkHash) mapping
+	err = pcs.StoreChunk(self.merkleRoot, self.chunkHash)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (self *Node) dump(prefix []byte) error {
 	for i := 0; i < (TreeDepth-1-self.level)/bitsPerPiece; i++ {
 		fmt.Printf("  ")
