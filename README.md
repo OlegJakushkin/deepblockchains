@@ -16,7 +16,7 @@ L2 and L3 utilize a Cloudstore abstraction to store and retrieve blocks and the 
 [[Paper](https://github.com/wolkdb/deepblockchains/blob/master/Deep_Blockchains.pdf)] Deep paper describing the scalable multilayer blockchain architecture in details.    
 
 #### Layer 1: RootChain Contract
-[[Solidity](https://github.com/wolkdb/deepblockchains/tree/master/Plasmacas)] A feature-complete smart contract, including the Plasma APIs documentation
+[[Solidity](https://github.com/wolkdb/deepblockchains/tree/master/Plasmacash)] A feature-complete smart contract, including the Plasma APIs documentation
 
 #### Layer 2: Plasma Chain
 [[GoLang](https://github.com/wolkdb/go-plasma)] Wolk's code-complete Plasma-Hybrid implementation
