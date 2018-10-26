@@ -1,11 +1,16 @@
 
-# Plasma Cash Chain
+# Plasma Chain
+
+[![Build Status](https://travis-ci.com/wolkdb/go-plasma.svg?token=Gtdcx5vGAnAVJ2NfpEhk&branch=master)](https://travis-ci.com/wolkdb/go-plasma)[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/wolkdb/deepblockchains/blob/master/Plasmacash/LICENSE.md)
+
 
 Author: Michael Chung (michael@wolk.com)
 
+*Feedback Needed*: A code-complete  [[go-plasma](https://github.com/wolkdb/go-plasma)] implementation is now available. Download Now!
+
 ## Background
 
-A reference Plasma Cash implementation by @wolkinc. To get started, we recommend reading:
+A reference Plasma implementation by @wolkinc. To get started, we recommend reading:
 
 * [Learn Plasma](https://www.learnplasma.org/)
 
@@ -15,13 +20,13 @@ A reference Plasma Cash implementation by @wolkinc. To get started, we recommend
 
 * [Plasma Cash with Sparse Merkle Trees and Bloom filters](https://ethresear.ch/t/plasma-cash-with-sparse-merkle-trees-bloom-filters-and-probabilistic-transfers/2006)
 
-Note: in our implementation, probabilistic transfers has been replaced with {allowance, spent, balance} to enable partial transfer and network fee.
+Note: in this implementation, probabilistic transfers has been replaced with {allowance, spent, balance} to enable partial transfer and network fee.
 
 ## Resources
 
 * [RootContract](https://rinkeby.etherscan.io/address/0x97f33d99d6d473cb938abb893abd49a2bb1404bf): Link to our feature-complete plasmacash-mvp contract on Rinkeby
 
-* [wolk-Plasma](https://github.com/wolkdb/plasma): A separate repository to our Go-based plasma Chain (*code will be made public after security auditing*)
+* [wolk-Plasma](https://github.com/wolkdb/go-plasma): A separate repository for code-complete plasma implementation, in GO (*Pending for security audit*)
 
 * [swarmdb](https://github.com/wolkdb/swarmdb): Main repository to our decentralized database v0.1 release
 
@@ -37,8 +42,6 @@ Note: in our implementation, probabilistic transfers has been replaced with {all
 
 ## Deep BlockChains
 We have augmented Plasma to support the *Deep BlockChains Architecture* described in this [paper](https://github.com/wolkdb/deepblockchains/blob/master/Deep_Blockchains.pdf). Currently, we are exploring a generalized "plasma debit" implementation, where network fees can flow between token owner and operator; In particular, we are extending the original {deposit, exit} schemes with partial withdraw functionality, which will enable operator to withdraw fees without forcing users to exist tokens on the mainNet.
-
-Most significantly, we have made our plasma both stateful and stateless!
 
 ## Contract Interface
 
@@ -66,14 +69,29 @@ Generally speaking, plasma nodes are required to be online at all time and watch
 * `FinalizeExit`: all tokens finalized can be taken out of circulation completely; the plasma node should respond with the tokenID as being _exited_
 
 # Plasma Node
-Pre-build plasma binary can be found on our website [TBA]. Alternatively, you can build plasma binary from the source:
+
+Prerequisites:
+* Option  I - build from source { [Golang](https://golang.org/doc/install) }
+* Option II - pull from Docker { [Docker CE](https://store.docker.com/search?type=edition&offering=community), [Python 2.7+](https://www.python.org/downloads/) }
+
+
+#### Option I - Built from Source
+
 ```
 # Build plasma binary
+$ mkdir -p $(cut -d':' -f1 <<<"$GOPATH")/src/github.com/wolkdb
+$ cd $(cut -d':' -f1 <<<"$GOPATH")/src/github.com/wolkdb
+$ git clone https://github.com/wolkdb/go-plasma.git
+$ cd go-plasma
 $ make plasma
+
 build/env.sh go run build/ci.go install ./cmd/plasma
->>> /usr/local/go/bin/go install -ldflags -X main.gitCommit=fdc5f7b81073c35f1fd36efe4f6ca1c0f2f4f0a6 -s -v ./cmd/plasma
+>>> /usr/local/go/bin/go install -ldflags -X main.gitCommit=0ef09eae7cd97c7b65a1d0d7ad5f5e0360a9efd2 -s -v ./cmd/plasma
+...
 Done building.
-Run "./build/bin/plasma" to launch plasma.
+
+To launch plasma, Run:
+./build/bin/plasma --rpc --rpcaddr 'localhost' --rpcport 8505 --rpcapi 'admin, personal,db,eth,net,web3,swarmdb,plasma'
 ```
 
 To start plasma nodes:
@@ -97,7 +115,9 @@ Deposit:  TokenID 09af84bc1208918b | Denomination 3000000000000000000 | DepositI
 Deposit:  TokenID 7c00dfa72e8832ed | Denomination 4000000000000000000 | DepositIndex 4  (Depositor: 0x74f978A3E049688777E6120D293F24348BDe5fA6, TxHash: 0xa268b3f36d3bbdb30b549f99fe0f7e7c35a2cd9598518a0c3116aa3ddc8fd68d)
 ...
 ```
-*Note*: [wolk-Plasma core](https://github.com/wolkdb/plasma) backend are yet to be released after security audit.
+#### Option II - Pull from Docker (Recommended)
+
+Start Plasma Node in 3 Min! Follow the  [[step-by-step instructions](https://github.com/wolkdb/go-plasma/blob/master/build/README.md)]
 
 ## RPC Interface
 Plasma node serves its users via JSON-RPC 2.0. Most Plasma APIs can be tested either directly in the console or via RPC-over-HTTP. To get started, we recommend using the console, as it allows relaxed input types (where both Integers and HexString are accepted), whereas RPC-over-HTTP requires strict HexString due to the [gencodec]("https://github.com/fjl/gencodec") package we are currently using.
@@ -295,10 +315,9 @@ curl -X POST --data  '{"jsonrpc":"2.0","id":"5","method":"plasma_getPlasmaTransa
     }
 }
 ```
+* `getPlasmaExitProof(tokenID uint64)` - get smart exitProof by tokenID. An smart exitProof includes `{prevTxBytes, prevProofByte, preBlk, TxBytes, ProofByte, Blk}`, which is required to start exit on MainNet.
 
 * `getPlasmaTransactionProof(txHash bytes32)` - get inclusion proof { blockNumber, txbyte, proofByte } by txHash. An inclusion proof is required to start exit or challenge double spend on MainNet.
-
-* `getPlasmaExitProof(tokenID uint64)` - get smart exitProof by tokenID. An smart exitProof includes `{prevTxBytes, prevProofByte, preBlk, TxBytes, ProofByte, Blk}`, which is required to start exit on MainNet.
 
 ```
 > plasma.getPlasmaTransactionProof("0x953285f46c56bf5c1f70a0d811b2ddf6ae00ea962f521f1ba20c7dd47d0c2b6f");
