@@ -26,75 +26,77 @@ type Proof struct {
 	proofBits uint64
 }
 
-func (self *Proof) Check(v []byte, root []byte, defaultHashes [TreeDepth][]byte, verbose bool) bool {
-	// the leaf value to start off hashing!  The value is hash(RLPEncode([]))
-	debug := false
-	cur := v
-	p := 0
-
-	for i := uint64(0); i < 64; i++ {
-
-		if (uint64(1<<i) & self.proofBits) > 0 {
-			if byte(0x01<<(i%8))&byte(self.key[(TreeDepth-1-i)/8]) > 0 { // i-th bit is "1", so hash with H([]) on the left
-				if debug {
-					fmt.Printf("C%v | [P,*] bit%v=1 | H(P[%d]:%x, C[%d]:%x) => ", i+1, i, p, self.proof[p], i, cur)
-				}
-				cur = Keccak256(self.proof[p], cur)
-			} else { // i-th bit is "0", so hash with H([]) on the right
-				if debug {
-					fmt.Printf("C%v | [*,P] bit%v=0 | H(C[%d]:%x, P[%d]:%x) => ", i+1, i, i, cur, p, self.proof[p])
-				}
-				cur = Keccak256(cur, self.proof[p])
-			}
-			p++
-		} else {
-			if byte(0x01<<(i%8))&byte(self.key[(TreeDepth-1-i)/8]) > 0 { // i-th bit is "1", so hash with H([]) on the left
-				if debug {
-					fmt.Printf("C%v | [D,*] bit%v=1 | H(D[%d]:%x, C[%d]:%x) => ", i+1, i, i, defaultHashes[i], i, cur)
-				}
-				cur = Keccak256(defaultHashes[i], cur)
-			} else {
-				if debug {
-					fmt.Printf("C%v | [*,D] bit%v=0 | H(C[%d]:%x, D[%d]:%x) => ", i+1, i, i, cur, i, defaultHashes[i])
-				}
-				cur = Keccak256(cur, defaultHashes[i])
-			}
+func (p *Proof) Verify(leaf []byte, root []byte, verbose bool) bool {
+	merkleroot, err := p.GetRoot(leaf)
+	if err != nil {
+		if verbose {
+			fmt.Printf("Err: %v", err)
 		}
-		if debug {
-			fmt.Printf(" %x\n", cur)
-		}
+		return false
 	}
-	res := bytes.Compare(cur, root) == 0
+	res := bytes.Compare(merkleroot, root) == 0
 	if verbose {
 		if res {
-			fmt.Printf(" CheckProof success (proof matched root: %x)\n", root)
+			fmt.Printf(" CheckProof success (root match: %x)\n", merkleroot)
 		} else {
-			fmt.Printf(" CheckProof FAILURE (proof does NOT match root: %x)\n", root)
+			fmt.Printf(" CheckProof FAILURE (expected root [%x] does NOT match actual root: %x)\n", root, merkleroot)
 		}
 	}
 	return res
 }
 
-func (p *Proof) Bytes() (out []byte) {
-	out = append(out, UInt64ToByte(p.proofBits)...)
+func (p *Proof) GetRoot(leaf []byte) (merkleroot []byte, err error) {
+	cur := leaf
+	d := 0
+	for i := uint64(0); i < 64; i++ {
+		if (uint64(1<<i) & p.proofBits) > 0 {
+			if d >= len(p.proof) {
+				return merkleroot, fmt.Errorf("Invalid Non-default depth at %d", d)
+			}
+			if byte(0x01<<(i%8))&byte(p.key[(TreeDepth-1-i)/8]) > 0 {
+				cur = Computehash(p.proof[d], cur)
+			} else {
+				cur = Computehash(cur, p.proof[d])
+			}
+			d++
+		} else {
+			if byte(0x01<<(i%8))&byte(p.key[(TreeDepth-1-i)/8]) > 0 {
+				cur = Computehash(GlobalDefaultHashes[i], cur)
+			} else {
+				cur = Computehash(cur, GlobalDefaultHashes[i])
+			}
+		}
+	}
+	return cur, nil
+}
+
+func (p *Proof) Root(leaf []byte) (root []byte) {
+	merkleroot, err := p.GetRoot(leaf)
+	if err != nil {
+		return root
+	}
+	return merkleroot
+}
+
+func (p *Proof) ProofBytes() (out []byte) {
+	out = append(out, UIntToByte(p.proofBits)...)
 	for _, h := range p.proof {
 		out = append(out, h...)
 	}
 	return out
 }
 
-func (p *Proof) Key() (index uint64) {
-	return BytesToUint64(p.key)
-}
-
-func ToProof(index uint64, proofBytes []byte) *Proof {
-	var pbits, psegs []byte
+func ToProof(index uint64, proofBytes []byte) (Proof, error) {
 	var p Proof
+	if len(proofBytes)%32 != 8 {
+		return p, fmt.Errorf("Invalid proofBytes Length")
+	}
+	var pbits, psegs []byte
 	pbits, psegs = proofBytes[:8], proofBytes[8:]
-	p.key = UInt64ToByte(index)
-	p.proofBits = BytesToUint64(pbits)
+	p.key = UIntToByte(index)
+	p.proofBits = Bytes32ToUint64(pbits)
 	p.proof = proofSplit(psegs)
-	return &p
+	return p, nil
 }
 
 func proofSplit(segments []byte) [][]byte {
@@ -108,16 +110,4 @@ func proofSplit(segments []byte) [][]byte {
 		proofs = append(proofs, segments[:len(segments)])
 	}
 	return proofs
-}
-
-func (self *Proof) String() string {
-	out := fmt.Sprintf("{\"token\":\"%x\",\"proofBits\":\"%x\",\"proof\":[", self.key, self.proofBits)
-	for i, p := range self.proof {
-		if i > 0 {
-			out = out + ","
-		}
-		out = out + fmt.Sprintf("\"0x%x\"", p)
-	}
-	out = out + "]}"
-	return out
 }

@@ -18,8 +18,6 @@ package smt
 import (
 	"bytes"
 	"fmt"
-
-	"github.com/syndtr/goleveldb/leveldb"
 )
 
 const (
@@ -30,6 +28,12 @@ const (
 	chunkSize     = 4096
 	bitsPerPiece  = 4
 )
+
+var GlobalDefaultHashes [TreeDepth][]byte
+
+func init() {
+	GlobalDefaultHashes = ComputeDefaultHashes()
+}
 
 func keypiece(k []byte, i int) uint8 {
 	if i%2 == 0 { // top 4 bits if i is even
@@ -59,9 +63,8 @@ type Node struct {
 
 func NewNode(level int, parent *Node) *Node {
 	return &Node{
-		children: make([]*Node, nchildren),
-		terminal: false,
-		//		parent:       parent,
+		children:     make([]*Node, nchildren),
+		terminal:     false,
 		dirty:        false,
 		unloaded:     false,
 		level:        level,
@@ -74,27 +77,27 @@ func (n *Node) SetHash(hash []byte) {
 	n.chunkHash = hash
 }
 
-func (n *Node) generateProof(pcs Cloudstore, k []byte, v []byte, i int, defaultHashes [TreeDepth][]byte, p *Proof) (ok bool) {
+func (n *Node) generateProof(cs Cloudstore, k []byte, v []byte, i int, p *Proof) (ok bool) {
 	if n.unloaded {
-		n.load(pcs)
+		n.load(cs)
 	}
 	idx := keypiece(k, i)
 	if n.children[idx] == nil {
 		return false // not a member of the tree!
 	}
 	if n.children[idx].unloaded {
-		n.children[idx].load(pcs)
+		n.children[idx].load(cs)
 	}
 	if n.children[idx].terminal {
 		p.proofBits = 0
 	} else {
-		ok = n.children[idx].generateProof(pcs, k, v, i+1, defaultHashes, p)
+		ok = n.children[idx].generateProof(cs, k, v, i+1, p)
 		if !ok {
 			return false
 		}
 	}
 
-	n.computeMerkleRootCache(defaultHashes)
+	n.computeMerkleRootCache()
 
 	for level := bitsPerPiece; level > 0; level-- {
 		// fmt.Printf("idx %08b @ level %d ==> PROOF OUTPUT %x\n", idx, level, n.mrcache[level][idx])
@@ -105,8 +108,8 @@ func (n *Node) generateProof(pcs Cloudstore, k []byte, v []byte, i int, defaultH
 			sister_index = idx + 1
 		}
 		p0 := n.mrcache[level][sister_index]
-		if bytes.Compare(p0, defaultHashes[TreeDepth-level]) == 0 {
-			// fmt.Printf(" ---- %x defaultHashes[%d]: %x\n", p0, TreeDepth-level, defaultHashes[TreeDepth-level])
+		if bytes.Compare(p0, GlobalDefaultHashes[TreeDepth-level]) == 0 {
+			// fmt.Printf(" ---- %x GlobalDefaultHashes[%d]: %x\n", p0, TreeDepth-level, GlobalDefaultHashes[TreeDepth-level])
 		} else {
 			p.proof = append(p.proof, n.mrcache[level][sister_index])
 			p.proofBits |= (uint64(1) << uint64(n.level-level+1))
@@ -118,12 +121,12 @@ func (n *Node) generateProof(pcs Cloudstore, k []byte, v []byte, i int, defaultH
 	return true
 }
 
-func (n *Node) computeMerkleRootCache(defaultHashes [TreeDepth][]byte) {
+func (n *Node) computeMerkleRootCache() {
 	// now for each of 8...0 levels, hash the level of "leaves" into  n.mrcache
 	newleaves_cnt := nchildren / 2
 	startlevel := bitsPerPiece - 1
 	for level := startlevel; level >= 0; level-- {
-		dh := defaultHashes[n.level-startlevel]
+		dh := GlobalDefaultHashes[n.level-startlevel]
 		for i := 0; i < newleaves_cnt; i++ {
 			if level == startlevel {
 				// now, using the children's merkle roots (or, dh if child is nil),
@@ -143,7 +146,7 @@ func (n *Node) computeMerkleRootCache(defaultHashes [TreeDepth][]byte) {
 					n.mrcache[bitsPerPiece][i*2+1] = dh
 				}
 			}
-			n.mrcache[level][i] = Keccak256(n.mrcache[level+1][i*2], n.mrcache[level+1][i*2+1])
+			n.mrcache[level][i] = Computehash(n.mrcache[level+1][i*2], n.mrcache[level+1][i*2+1])
 			if bytes.Compare(n.mrcache[level+1][i*2], n.mrcache[level+1][i*2+1]) != 0 {
 				if debug {
 					fmt.Printf(" G mrcache[level %d][i %d]: %x", level, i, n.mrcache[level][i])
@@ -158,8 +161,8 @@ func (n *Node) computeMerkleRootCache(defaultHashes [TreeDepth][]byte) {
 	copy(n.merkleRoot[:], n.mrcache[0][0][:])
 }
 
-func (n *Node) computeMerkleRoot(pcs Cloudstore, defaultHashes [TreeDepth][]byte) []byte {
-	n.load(pcs)
+func (n *Node) computeMerkleRoot(cs Cloudstore) []byte {
+	n.load(cs)
 
 	if n.terminal {
 		// build merkle root hash of a terminal going from level 0 to the terminal Level
@@ -171,14 +174,14 @@ func (n *Node) computeMerkleRoot(pcs Cloudstore, defaultHashes [TreeDepth][]byte
 		for i := uint(0); i <= uint(n.level); i++ {
 			if byte(0x01<<(i%8))&byte(n.key[(TreeDepth-1-i)/8]) > 0 { // i-th bit is "1", so hash with H([]) on the left
 				if debug && (i < 1 || i > 54) {
-					fmt.Printf(" mr %x bit %3d (%08b)=1 hash(defaultHashes[%d]:%x, cur:%x) => ", n.key, i, i, i, defaultHashes[i], cur)
+					fmt.Printf(" mr %x bit %3d (%08b)=1 hash(GlobalDefaultHashes[%d]:%x, cur:%x) => ", n.key, i, i, i, GlobalDefaultHashes[i], cur)
 				}
-				cur = Keccak256(defaultHashes[i], cur)
+				cur = Computehash(GlobalDefaultHashes[i], cur)
 			} else { // i-th bit is "0", so hash with H([]) on the right
 				if debug && (i < 1 || i > 54) {
-					fmt.Printf(" mr %x bit %3d (%08b)=0 hash(cur:%x, defaultHashes[%d]:%x) => ", n.key, i, i, cur, i, defaultHashes[i])
+					fmt.Printf(" mr %x bit %3d (%08b)=0 hash(cur:%x, GlobalDefaultHashes[%d]:%x) => ", n.key, i, i, cur, i, GlobalDefaultHashes[i])
 				}
-				cur = Keccak256(cur, defaultHashes[i])
+				cur = Computehash(cur, GlobalDefaultHashes[i])
 			}
 			if debug && (i < 1 || i > 54) {
 				fmt.Printf(" %x\n", cur)
@@ -191,7 +194,7 @@ func (n *Node) computeMerkleRoot(pcs Cloudstore, defaultHashes [TreeDepth][]byte
 		// ok, we are not the terminal, so for each child, compute THEIR merkle root at the child Level
 		for i := 0; i < nchildren; i++ {
 			if n.children[i] != nil {
-				n.children[i].computeMerkleRoot(pcs, defaultHashes)
+				n.children[i].computeMerkleRoot(cs)
 			}
 		}
 	}
@@ -200,7 +203,7 @@ func (n *Node) computeMerkleRoot(pcs Cloudstore, defaultHashes [TreeDepth][]byte
 	newleaves_cnt := nchildren / 2
 	startlevel := bitsPerPiece - 1
 	for level := startlevel; level >= 0; level-- {
-		dh := defaultHashes[n.level-startlevel]
+		dh := GlobalDefaultHashes[n.level-startlevel]
 		for i := 0; i < newleaves_cnt; i++ {
 			if level == startlevel {
 				// now, using the children's merkle roots (or, dh if child is nil),
@@ -220,7 +223,7 @@ func (n *Node) computeMerkleRoot(pcs Cloudstore, defaultHashes [TreeDepth][]byte
 					n.mrcache[bitsPerPiece][i*2+1] = dh
 				}
 			}
-			n.mrcache[level][i] = Keccak256(n.mrcache[level+1][i*2], n.mrcache[level+1][i*2+1])
+			n.mrcache[level][i] = Computehash(n.mrcache[level+1][i*2], n.mrcache[level+1][i*2+1])
 			if bytes.Compare(n.mrcache[level+1][i*2], n.mrcache[level+1][i*2+1]) != 0 {
 				if debug {
 					fmt.Printf(" G mrcache[level %d][i %d]: %x", level, i, n.mrcache[level][i])
@@ -231,7 +234,7 @@ func (n *Node) computeMerkleRoot(pcs Cloudstore, defaultHashes [TreeDepth][]byte
 		newleaves_cnt = newleaves_cnt / 2
 	}
 	// finally, store the answer
-	n.computeMerkleRootCache(defaultHashes)
+	n.computeMerkleRootCache()
 	return n.merkleRoot
 }
 
@@ -263,9 +266,9 @@ func (n *Node) delete(k []byte, i int) (ok bool, err error) {
 	return false, nil
 }
 
-func (n *Node) insert(pcs Cloudstore, k []byte, v []byte, i int, storageBytesNew uint64, blockNum uint64) error {
+func (n *Node) insert(cs Cloudstore, k []byte, v []byte, i int, storageBytesNew uint64, blockNum uint64) error {
 	if n.unloaded {
-		n.load(pcs)
+		n.load(cs)
 	}
 
 	if i >= nkeypieces(k) {
@@ -298,11 +301,11 @@ func (n *Node) insert(pcs Cloudstore, k []byte, v []byte, i int, storageBytesNew
 					// two keys!
 					n.children[idx].dirty = true
 					n.children[idx].terminal = false
-					n.children[idx].insert(pcs, n.children[idx].key, n.children[idx].chunkHash, i+1, n.children[idx].storageBytes, n.children[idx].blockNum)
-					n.children[idx].insert(pcs, k, v, i+1, storageBytesNew, blockNum)
+					n.children[idx].insert(cs, n.children[idx].key, n.children[idx].chunkHash, i+1, n.children[idx].storageBytes, n.children[idx].blockNum)
+					n.children[idx].insert(cs, k, v, i+1, storageBytesNew, blockNum)
 				}
 			} else {
-				n.children[idx].insert(pcs, k, v, i+1, storageBytesNew, blockNum)
+				n.children[idx].insert(cs, k, v, i+1, storageBytesNew, blockNum)
 			}
 		}
 		tot := uint64(0)
@@ -318,20 +321,21 @@ func (n *Node) insert(pcs Cloudstore, k []byte, v []byte, i int, storageBytesNew
 
 // load from SWARM using self.chunkHash; node chunks are saved in "flush" operations
 // node chunks are nchildren rows, each of 40 bytes: 8 byte keys and 32 byte hashes.  If the 32 byte hash is 0, then there is no child.
-func (self *Node) load(pcs Cloudstore) bool {
+func (self *Node) load(cs Cloudstore) bool {
 	if !self.unloaded {
 		return false
 	}
-
-	chunk, err := pcs.RetrieveChunk(self.chunkHash)
-	if err == leveldb.ErrNotFound {
+	chunk, ok, err := cs.GetChunk(self.chunkHash)
+	//fmt.Printf("\nThe chunk retrieved using hash (%x): %+x (%+v) and ERR: %+v OK: %+v", self.chunkHash, chunk, chunk, err, ok)
+	if err != nil {
 		return false
-	} else if err != nil {
-		return false
+	} else if !ok {
+		return true
 	} else {
 		blank_key := make([]byte, 8)
 		blank_hash := make([]byte, 32)
 		for j := 0; j < nchildren; j++ {
+			//TODO: check that these chunk indices are valid before calling
 			p_key := chunk[j*bytesPerChild+0 : j*bytesPerChild+8]
 			p_hash := chunk[j*bytesPerChild+8 : j*bytesPerChild+40]
 			if bytes.Compare(p_hash, blank_hash) != 0 {
@@ -345,9 +349,9 @@ func (self *Node) load(pcs Cloudstore) bool {
 					self.children[j].key = p_key // 8 bytes
 				}
 				self.children[j].chunkHash = p_hash
-				self.children[j].storageBytes = BytesToUint64(chunk[j*bytesPerChild+40 : j*bytesPerChild+48])
+				self.children[j].storageBytes = Bytes32ToUint64(chunk[j*bytesPerChild+40 : j*bytesPerChild+48])
 				self.children[j].merkleRoot = chunk[j*bytesPerChild+48 : j*bytesPerChild+80]
-				self.children[j].blockNum = BytesToUint64(chunk[j*bytesPerChild+80 : j*bytesPerChild+88])
+				self.children[j].blockNum = Bytes32ToUint64(chunk[j*bytesPerChild+80 : j*bytesPerChild+88])
 			}
 		}
 	}
@@ -355,15 +359,17 @@ func (self *Node) load(pcs Cloudstore) bool {
 	return true
 }
 
-func (self *Node) get(pcs Cloudstore, k []byte, i int) (v []byte, ok bool, storageBytes uint64, blockNum uint64, err error) {
-	self.load(pcs)
-
+func (self *Node) get(cs Cloudstore, k []byte, i int) (v []byte, ok bool, storageBytes uint64, blockNum uint64, err error) {
+	self.load(cs)
+	//TODO: load siblings along with desired chunk / child
 	idx := keypiece(k, i)
 	if self.children[idx] != nil {
 		if self.children[idx].terminal {
-			return self.children[idx].chunkHash, (bytes.Compare(self.children[idx].key, k) == 0), self.children[idx].storageBytes, self.children[idx].blockNum, nil
+			if bytes.Equal(k, self.children[idx].key) {
+				return self.children[idx].chunkHash, (bytes.Compare(self.children[idx].key, k) == 0), self.children[idx].storageBytes, self.children[idx].blockNum, nil
+			}
 		} else {
-			v, ok, storageBytes, blockNum, err = self.children[idx].get(pcs, k, i+1)
+			v, ok, storageBytes, blockNum, err = self.children[idx].get(cs, k, i+1)
 			if err != nil {
 				return v, ok, storageBytes, blockNum, err
 			} else {
@@ -374,7 +380,7 @@ func (self *Node) get(pcs Cloudstore, k []byte, i int) (v []byte, ok bool, stora
 	return v, false, 0, 0, nil
 }
 
-func (self *Node) flush(pcs Cloudstore) (err error) {
+func (self *Node) flush(cs Cloudstore) (err error) {
 	if self.dirty {
 		// compute hash!
 		chunk := make([]byte, chunkSize)
@@ -388,7 +394,7 @@ func (self *Node) flush(pcs Cloudstore) (err error) {
 					copy(chunk[i*bytesPerChild+80:i*bytesPerChild+88], UIntToByte(self.children[i].blockNum))
 				} else {
 					// recursive call
-					err = self.children[i].flush(pcs)
+					err = self.children[i].flush(cs)
 					if err != nil {
 						return err
 					} else {
@@ -405,20 +411,24 @@ func (self *Node) flush(pcs Cloudstore) (err error) {
 			}
 		}
 		// store newly developed chunk to Cloudstore
-		chunkID := Keccak256(chunk)
-		err := pcs.StoreChunk(chunkID, chunk)
-		if err != nil {
-			return err
-		}
+		chunkID := Computehash(chunk)
+		//err := cs.StoreChunk(chunkID, chunk)
+		go func() {
+			err := cs.SetChunk(chunkID, chunk)
+			if err != nil {
+				//return err
+			}
+		}()
+
 		self.chunkHash = chunkID
 		self.dirty = false
 	}
 	return nil
 }
 
-func (self *Node) flushRoot(pcs Cloudstore) (err error) {
+func (self *Node) flushRoot(cs Cloudstore) (err error) {
 	//create (merkleroot, chunkHash) mapping
-	err = pcs.StoreChunk(self.merkleRoot, self.chunkHash)
+	err = cs.SetChunk(self.merkleRoot, self.chunkHash)
 	if err != nil {
 		return err
 	}

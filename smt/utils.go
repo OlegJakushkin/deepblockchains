@@ -21,21 +21,21 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/sha3"
 )
 
-func ComputeDefaultHashes() (defaultHashes [TreeDepth][]byte) {
-	empty := make([]byte, 0)
-	defaultHashes[0] = Keccak256(empty)
-	for level := 1; level < TreeDepth; level++ {
-		defaultHashes[level] = Keccak256(defaultHashes[level-1], defaultHashes[level-1])
+func Computehash(data ...[]byte) []byte {
+	d := sha3.NewKeccak256()
+	for _, b := range data {
+		d.Write(b)
 	}
-	return defaultHashes
+	return d.Sum(nil)
 }
 
-func Keccak256(data ...[]byte) []byte {
-	hasher := sha3.NewKeccak256()
-	for _, b := range data {
-		hasher.Write(b)
+func ComputeDefaultHashes() (defaultHashes [TreeDepth][]byte) {
+	empty := make([]byte, 0)
+	defaultHashes[0] = Computehash(empty)
+	for level := 1; level < TreeDepth; level++ {
+		defaultHashes[level] = Computehash(defaultHashes[level-1], defaultHashes[level-1])
 	}
-	return hasher.Sum(nil)
+	return defaultHashes
 }
 
 // helper stuff here for a while
@@ -51,23 +51,13 @@ func UIntToByte(i uint64) (k []byte) {
 	return k
 }
 
-func UInt64ToByte(i uint64) (k []byte) {
-	k = make([]byte, 8)
-	binary.BigEndian.PutUint64(k, uint64(i))
-	return k
-}
-
 func Uint64ToBytes32(i uint64) (k []byte) {
 	k = make([]byte, 32)
 	binary.BigEndian.PutUint64(k[24:32], uint64(i))
 	return k
 }
 
-func BytesToUint64(inp []byte) uint64 {
-	return binary.BigEndian.Uint64(inp)
-}
-
 func Bytes32ToUint64(k []byte) (out uint64) {
 	h := k[0:8]
-	return BytesToUint64(h)
+	return binary.BigEndian.Uint64(h)
 }

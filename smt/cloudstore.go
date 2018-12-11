@@ -18,16 +18,15 @@ package smt
 import (
 	"fmt"
 
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
 const DefaultChunkstorePath = "/tmp/cloudstore"
 
 type Cloudstore struct {
-	ldb *leveldb.DB
-	// providers [4]ICloudstore
+	ldb      *leveldb.DB
 	filepath string
+	// providers
 }
 
 func NewCloudstore(path string) (self Cloudstore, err error) {
@@ -35,7 +34,7 @@ func NewCloudstore(path string) (self Cloudstore, err error) {
 	if err != nil {
 		return self, fmt.Errorf("NewCloudstore:OpenFile %s: %v\n", path, err)
 	}
-	log.Info("NewCloudstore", "path", path)
+
 	self = Cloudstore{
 		ldb:      ldb,
 		filepath: path,
@@ -50,21 +49,29 @@ func NewCloudstore(path string) (self Cloudstore, err error) {
 	return self, nil
 }
 
-func (self Cloudstore) RetrieveChunk(k []byte) (v []byte, err error) {
+//func (self Cloudstore) GetChunk(k []byte) (v []byte, err error) {
+func (self Cloudstore) GetChunk(k []byte) (chunk []byte, ok bool, err error) {
+
 	// Layer 2 interfaces with providers like ...
-	//	v, err = self.providers[0].RetrieveChunk(k)
-	val, err := self.ldb.Get(k, nil)
-	if err == leveldb.ErrNotFound {
-		return val, leveldb.ErrNotFound
-	} else if err != nil {
-		return val, err
+	//	v, err = self.providers[0].GetChunk(k)
+	if self.ldb == nil {
+		return []byte(""), false, fmt.Errorf("cache unavailable")
 	}
-	return val, nil
+	v, err := self.ldb.Get(k, nil)
+	if err == leveldb.ErrNotFound {
+		return v, false, nil
+	} else if err != nil {
+		return v, false, err
+	}
+	return v, true, nil
 }
 
-func (self Cloudstore) StoreChunk(k []byte, v []byte) (err error) {
+func (self Cloudstore) SetChunk(k []byte, v []byte) (err error) {
 	// Layer 2 interfaces with providers like ...
 	//  err = self.providers[0].StoreChunk(k, v)
+	if self.ldb == nil {
+		return fmt.Errorf("cache unavailable")
+	}
 	err = self.ldb.Put(k, v, nil)
 	if err != nil {
 		return err
