@@ -100,14 +100,14 @@ ok  	github.com/wolkdb/plasma/stark	1.176s
 Basic parallelization (go routines, WaitGroups) of the proof generation and verification have been added, with a first pass review of big.Int usage.  
 
 ### STARK Proof Generation
-![Proof Parallelization](https://github.com/wolkdb/deepblockchains/blob/master/stark/flows/proof-goroutine-flow.png "Proof Parallelization")
+![Proof Parallelization](https://github.com/OlegJakushkin/deepblockchains/blob/master/stark/flows/proof-goroutine-flow.png "Proof Parallelization")
 
 
-![FRI Parallelization](https://github.com/wolkdb/deepblockchains/blob/master/stark/flows/fri-goroutine-flow.png "FRI Parallelization")
+![FRI Parallelization](https://github.com/OlegJakushkin/deepblockchains/blob/master/stark/flows/fri-goroutine-flow.png "FRI Parallelization")
 
 ### STARK Verification
 
-![Verification Parallelization](https://github.com/wolkdb/deepblockchains/blob/master/stark/flows/verify-goroutine-flow.png "Verification Parallelization")
+![Verification Parallelization](https://github.com/OlegJakushkin/deepblockchains/blob/master/stark/flows/verify-goroutine-flow.png "Verification Parallelization")
 
 
 ### 2014 MacBook Pro 2.2 GHz Intel Core i7 (8 "logical" cores)
